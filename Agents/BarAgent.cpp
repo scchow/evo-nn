@@ -5,6 +5,7 @@ BarAgent::BarAgent(size_t nPop, string evalFunc, size_t nNights, actFun afType):
   numOut = numNights ; // let the network output a vector of length number of nights
   numHidden = 16 ;
   AgentNE = new NeuroEvo(numIn, numOut, numHidden, nPop, afType) ;
+  notLearning = false;
   
   if (evalFunc.compare("D") == 0)
     isD = true ;
@@ -20,7 +21,11 @@ BarAgent::~BarAgent(){
   delete(AgentNE) ;
   AgentNE = 0 ;
 }
-  
+
+void BarAgent::stopLearning(){
+  notLearning = true;
+}
+
 void BarAgent::ResetEpochEvals(){
   // Re-initialise size of evaluations vector
   vector<double> evals(2*popSize,0) ;
@@ -69,6 +74,10 @@ void BarAgent::SetEpochPerformance(double G, size_t i){
 }
 
 void BarAgent::EvolvePolicies(bool init){
+  // Don't evolve policies if agent is not learning
+  if (notLearning){
+    return;
+  }
   if (!init)
     AgentNE->EvolvePopulation(epochEvals) ;
   AgentNE->MutatePopulation() ;

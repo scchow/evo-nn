@@ -1,10 +1,16 @@
 #include "MultiNightBar.h"
 
-MultiNightBar::MultiNightBar(size_t numNights, size_t c, size_t numPop, string evalFunc, size_t agents): nNights(numNights), capacity(c), nPop(numPop), evaluationFunction(evalFunc), nAgents(agents){
+MultiNightBar::MultiNightBar(size_t numNights, size_t c, size_t numPop, string evalFunc, size_t agents, size_t numAgentsDisabled): 
+                              nNights(numNights), capacity(c), nPop(numPop), evaluationFunction(evalFunc), nAgents(agents), nAgentsDisabled(numAgentsDisabled){
   for (size_t i = 0; i < nAgents; i++){
     BarAgent * newAgent = new BarAgent(nPop, evaluationFunction, nNights) ;
+    // Diable Agent if part of disabled group
+    if (i < nAgentsDisabled){
+      newAgent.stopLearning(true); 
+    }
     agentTeam.push_back(newAgent) ;
   }
+
   outputEvals = false ;
   outputActs = false ;
 }
@@ -177,6 +183,21 @@ void MultiNightBar::OutputControlPolicies(char * A){
   for (size_t i = 0; i < nAgents; i++)
     agentTeam[i]->OutputNNs(A) ;
 }
+
+///TODO Finish writing output parameters and output CSV
+void MultiNightBar::OutputParameters(char* fname){
+  std::stringstream fnameStream;
+  fnameStream << fname;
+  if (paramFile.is_open()){
+    paramFile.close();
+  }
+  paramFile.open(fnameStream.str().c_str(), std::ios::app);
+
+
+}
+void MultiNightBar::OutputPerformanceVsEpochCSV(size_t epoch_number, char* filename){
+
+} 
 
 void MultiNightBar::ExecutePolicies(char * readFile, char * storeActs, char * storeBar, char* storeEval, size_t numIn, size_t numOut, size_t numHidden){
   // Filename to read NN control policy

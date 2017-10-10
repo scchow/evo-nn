@@ -29,6 +29,9 @@ class BarAgent{
     void EvolvePolicies(bool init = false) ;
     
     void OutputNNs(char *) ;
+
+    void stopLearning();
+
     NeuroEvo * GetNEPopulation(){return AgentNE ;}
   private:
     size_t popSize ;
@@ -36,6 +39,7 @@ class BarAgent{
     size_t numOut ;
     size_t numHidden ;
     size_t numNights ;
+    bool notLearning; // If true, this agent does not learn
     
     vector<Bar> barNights ;
     bool isD ;

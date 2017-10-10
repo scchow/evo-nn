@@ -21,7 +21,7 @@ using namespace Eigen ;
 
 class MultiNightBar{
   public:
-    MultiNightBar(size_t numNights, size_t c, size_t numPop, string evalFunc, size_t agents) ;
+    MultiNightBar(size_t numNights, size_t c, size_t numPop, string evalFunc, size_t agents, size_t numAgentsDisabled) ;
     ~MultiNightBar() ;
     
     void InitialiseEpoch() ;
@@ -33,6 +33,18 @@ class MultiNightBar{
     void OutputPerformance(char *) ;
     void OutputActions(char *, char *) ;
     void OutputControlPolicies(char *) ;
+
+    /*
+      \brief Writes the parameters of the multibar problem to the given file name
+      \input fname A string containing the file to write to
+    */
+    void OutputParameters(char* fname);
+    /*
+      \brief Writes the performance vs epoch data to a csv at the given file name
+      \input fname A string containing the file path to the csv
+      \input epoch_number A size_t of the current epoch
+    */
+    void OutputPerformanceVsEpochCSV(size_t epoch_number, char* fname);
     
     void ExecutePolicies(char * readFile, char * storeJoint, char * storeNights, char * storeEval, size_t numIn, size_t numOut, size_t numHidden) ; // read in control policies and execute in random world, store joint action and bar parameters in second and third inputs, team performance stored in fourth input, fifth-seventh inputs define NN structure
 
@@ -42,6 +54,7 @@ class MultiNightBar{
     size_t nPop ;
     string evaluationFunction ;
     size_t nAgents ;
+    size_t nAgentsDisabled;
     
     vector<BarAgent *> agentTeam ;
     vector<Bar> barNights ;
@@ -53,6 +66,8 @@ class MultiNightBar{
     std::ofstream actFile ;
     std::ofstream barFile ;
     std::ofstream NNFile ;
+    std::ofstream paramFile;
+    std::ofstream perfEpochFile;
     
     vector< vector<size_t> > RandomiseTeams(size_t) ;
 } ;
