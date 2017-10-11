@@ -30,7 +30,9 @@ class BarAgent{
     
     void OutputNNs(char *) ;
 
-    void stopLearning();
+    void setLearningFlag(bool x);
+
+    bool isLearning();
 
     NeuroEvo * GetNEPopulation(){return AgentNE ;}
   private:
@@ -39,7 +41,7 @@ class BarAgent{
     size_t numOut ;
     size_t numHidden ;
     size_t numNights ;
-    bool notLearning; // If true, this agent does not learn
+    bool learningFlag; // If true, this agent is learning
     
     vector<Bar> barNights ;
     bool isD ;

@@ -5,7 +5,7 @@ BarAgent::BarAgent(size_t nPop, string evalFunc, size_t nNights, actFun afType):
   numOut = numNights ; // let the network output a vector of length number of nights
   numHidden = 16 ;
   AgentNE = new NeuroEvo(numIn, numOut, numHidden, nPop, afType) ;
-  notLearning = false;
+  learningFlag = true;
   
   if (evalFunc.compare("D") == 0)
     isD = true ;
@@ -22,8 +22,8 @@ BarAgent::~BarAgent(){
   AgentNE = 0 ;
 }
 
-void BarAgent::stopLearning(){
-  notLearning = true;
+void BarAgent::setLearningFlag(bool x){
+  learningFlag = x;
 }
 
 void BarAgent::ResetEpochEvals(){
@@ -43,7 +43,8 @@ void BarAgent::InitialiseNewLearningEpoch(vector<Bar> b){
 int BarAgent::ExecuteNNControlPolicy(size_t i){
   VectorXd s(1) ;
   s(0) = 1.0 ; // since problem is stateless, always pass in 1
-  
+  // std::cout << "getting NN index: " << i << "\n";
+  // std::cout << "Agent has " << AgentNE->GetCurrentPopSize() << " neural networks\n";
   // Calculate action, NN returns a vector of values between 0 and 1
   VectorXd output = AgentNE->GetNNIndex(i)->EvaluateNN(s);
   
@@ -75,9 +76,11 @@ void BarAgent::SetEpochPerformance(double G, size_t i){
 
 void BarAgent::EvolvePolicies(bool init){
   // Don't evolve policies if agent is not learning
-  if (notLearning){
+  if (!learningFlag){
+    // std::cout << "Agent's learning flag was set to false, not evolving policies\n";
     return;
   }
+  // std::cout << "Agent's learning flag was set to true, evolving policies\n";
   if (!init)
     AgentNE->EvolvePopulation(epochEvals) ;
   AgentNE->MutatePopulation() ;
@@ -108,6 +111,10 @@ void BarAgent::OutputNNs(char * A){
     }
   }
   NNFile.close() ;
+}
+
+bool BarAgent::isLearning(){
+  return learningFlag;
 }
 
 void BarAgent::DifferenceEvaluationFunction(vector<int> jointAction, size_t ind, double G){

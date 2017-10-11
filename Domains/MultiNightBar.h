@@ -55,6 +55,7 @@ class MultiNightBar{
     string evaluationFunction ;
     size_t nAgents ;
     size_t nAgentsDisabled;
+    float maxPerformance;
     
     vector<BarAgent *> agentTeam ;
     vector<Bar> barNights ;

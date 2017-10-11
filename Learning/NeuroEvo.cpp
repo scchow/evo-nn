@@ -28,6 +28,7 @@ void NeuroEvo::MutatePopulation(){
 
 // Evolve population according to evaluation signal and survival function
 void NeuroEvo::EvolvePopulation(vector<double> evaluation){
+  // std::cout << "evolving population\n";
   for (size_t i = 0; i < 2*populationSize; i++)
     populationNN[i]->SetEvaluation(evaluation[i]) ;
   

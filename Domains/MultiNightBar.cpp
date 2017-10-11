@@ -6,13 +6,14 @@ MultiNightBar::MultiNightBar(size_t numNights, size_t c, size_t numPop, string e
     BarAgent * newAgent = new BarAgent(nPop, evaluationFunction, nNights) ;
     // Diable Agent if part of disabled group
     if (i < nAgentsDisabled){
-      newAgent.stopLearning(true); 
+      newAgent->setLearningFlag(false); 
     }
     agentTeam.push_back(newAgent) ;
   }
 
   outputEvals = false ;
   outputActs = false ;
+  maxPerformance = 0.0;
 }
 
 MultiNightBar::~MultiNightBar(){
@@ -39,7 +40,7 @@ void MultiNightBar::InitialiseEpoch(){
 void MultiNightBar::SimulateEpoch(bool train){
   size_t teamSize ;
   if (train)
-    teamSize = 2*nPop ;
+    teamSize = 2*nPop ; // Note: This team size is only accurate if the agent is learning. For nonlearning agents, see workaround below
   else
     teamSize = nPop ;
   
@@ -59,8 +60,18 @@ void MultiNightBar::SimulateEpoch(bool train){
     
     for (size_t j = 0; j < nAgents; j++){ // looping down the rows of 'teams'
       // Compute action for agent j
-      int a = agentTeam[j]->ExecuteNNControlPolicy(teams[j][i]) ;
-      jointState.push_back(a) ;
+      // std::cout << "compute action for agent " << j << "\n";
+
+      // Workaround: if agent j is in a non-learning state, it does not actually have 2*nPop networks
+      // we work around this by modding the expected nn number by the actual number of networks
+      int a;
+      if (agentTeam[j]->isLearning()){
+        a = agentTeam[j]->ExecuteNNControlPolicy(teams[j][i]);
+      }
+      else{
+        a = agentTeam[j]->ExecuteNNControlPolicy(teams[j][i] % nPop);
+      }
+      jointState.push_back(a);
     }
     
     // Compute G
@@ -104,37 +115,38 @@ void MultiNightBar::SimulateEpoch(bool train){
   
   // Compute delta Pis - Only do this for training
   // For every agent, for every neural network in the first k agents, compute delta D / delta Pi
-  if (train){
+  // if (train){
 
-    for (size_t i = 0; i < nAgents; i++){
+  //   for (size_t i = 0; i < nAgents; i++){
       
-      BarAgent* currentAgent = agentTeam[i];
-      // Pointer to currentAgent's Neural Networks
-      NeuroEvo* currentAgentNNs = currentAgent->GetNEPopulation();
+  //     BarAgent* currentAgent = agentTeam[i];
+  //     // Pointer to currentAgent's Neural Networks
+  //     NeuroEvo* currentAgentNNs = currentAgent->GetNEPopulation();
 
-      for (size_t j = 0; j < nPop; j++){
+  //     for (size_t j = 0; j < nPop; j++){
 
-        // Original NN indices go from 0 to nPop-1, Mutated NN indices go from nPop to 2*NPop
-        // where 0's mutated Neural Network is at nPop, 1's at 1+nPoP etc.
-        NeuralNet* originalNN = currentAgentNNs->GetNNIndex(j);
-        NeuralNet* mutatedNN = currentAgentNNs->GetNNIndex(j+nPop);
+  //       // Original NN indices go from 0 to nPop-1, Mutated NN indices go from nPop to 2*NPop
+  //       // where 0's mutated Neural Network is at nPop, 1's at 1+nPoP etc.
+  //       NeuralNet* originalNN = currentAgentNNs->GetNNIndex(j);
+  //       NeuralNet* mutatedNN = currentAgentNNs->GetNNIndex(j+nPop);
 
-        // Determine Pi for each of the neural networks
-        VectorXd oneInput(1);
-        oneInput(0) = 1;
-        VectorXd originalOutput = originalNN->EvaluateNN(oneInput);
-        VectorXd mutatedOutput = mutatedNN->EvaluateNN(oneInput);
+  //       // Determine Pi for each of the neural networks
+  //       VectorXd oneInput(1);
+  //       oneInput(0) = 1;
+  //       VectorXd originalOutput = originalNN->EvaluateNN(oneInput);
+  //       VectorXd mutatedOutput = mutatedNN->EvaluateNN(oneInput);
 
-        VectorXd diffVector = mutatedOutput - originalOutput;
+  //       VectorXd diffVector = mutatedOutput - originalOutput;
 
-        double deltaPi = diffVector.norm();
-        // std::cout << "Delta Pi: " << deltaPi << std::endl;
-      }
-    }
-  }
+  //       double deltaPi = diffVector.norm();
+  //       // std::cout << "Delta Pi: " << deltaPi << std::endl;
+  //     }
+  //   }
+  // }
 
   // Print best team performance
   std::cout << "max achieved value: " << maxEval << "...\n" ;
+  maxPerformance = maxEval;
 }
 
 void MultiNightBar::EvolvePolicies(bool init){
@@ -184,7 +196,6 @@ void MultiNightBar::OutputControlPolicies(char * A){
     agentTeam[i]->OutputNNs(A) ;
 }
 
-///TODO Finish writing output parameters and output CSV
 void MultiNightBar::OutputParameters(char* fname){
   std::stringstream fnameStream;
   fnameStream << fname;
@@ -192,11 +203,22 @@ void MultiNightBar::OutputParameters(char* fname){
     paramFile.close();
   }
   paramFile.open(fnameStream.str().c_str(), std::ios::app);
-
+  paramFile << "Nights: "<< nNights << "\n";
+  paramFile << "Capacity: " << capacity << "\n";
+  paramFile << "Number Agents: "<< nAgents << "\n";
+  paramFile << "Number Agents Disabled: " << nAgentsDisabled << "\n";
+  paramFile << "Population Size: "<< nPop << "\n";
+  paramFile << "Evaluation Function: " << evaluationFunction << "\n";
 
 }
-void MultiNightBar::OutputPerformanceVsEpochCSV(size_t epoch_number, char* filename){
-
+void MultiNightBar::OutputPerformanceVsEpochCSV(size_t epoch_number, char* fname){
+  std::stringstream fnameStream;
+  fnameStream << fname;
+  if (perfEpochFile.is_open()){
+    perfEpochFile.close();
+  }
+  perfEpochFile.open(fnameStream.str().c_str(), std::ios::app);
+  perfEpochFile << epoch_number << ", " << maxPerformance << "\n";
 } 
 
 void MultiNightBar::ExecutePolicies(char * readFile, char * storeActs, char * storeBar, char* storeEval, size_t numIn, size_t numOut, size_t numHidden){
