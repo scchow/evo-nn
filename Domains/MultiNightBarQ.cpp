@@ -1,7 +1,7 @@
 #include "MultiNightBarQ.h"
 
 MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::string evalFunc, 
-                               double lr, double discount, double probRandom, double maxReward): 
+                               double lr, double discount, double probRandom, double maxReward, size_t nAgentsDisabled): 
                                numNights(nNights), capacity(cap), 
                                numAgents(nAgents){
 
@@ -13,6 +13,9 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::
     for (size_t i = 0; i < numAgents; ++i){
         QLearner* newAgent = new QLearner(lr, discount, probRandom, maxReward, 
                                         numStates, numActions, initState);
+        if (i < nAgentsDisabled){
+            newAgent->setLearningFlag(false);
+        }
         agents.push_back(newAgent);
     }
 

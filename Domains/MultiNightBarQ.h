@@ -17,7 +17,8 @@
 class MultiNightBarQ{
   public:
     MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::string evalFunc, 
-                   double lr, double discountFactor, double probRandom, double maxReward);
+                   double lr, double discountFactor, double probRandom, double maxReward, size_t nAgentsDisabled);
+
     ~MultiNightBarQ();
     
     /**

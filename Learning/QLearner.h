@@ -40,6 +40,14 @@ class QLearner{
          */
         void updateQ(double reward, size_t nextState);
 
+
+        /**
+         * setLearningFlag()
+         *
+         * \brief starts or stops the agent from learning 
+         */
+        void setLearningFlag(bool flag);
+
     private:
         double learningRate; /// learning rate (alpha)
         double discountFactor; /// discount factor (gamma)
@@ -49,6 +57,7 @@ class QLearner{
         std::vector<std::vector<double>> Q; /// Q state-action 
         size_t currState; /// current state represented by index
         size_t currAction; /// current action represented by index
+        bool train; /// Determine if this agent will learn (update Q value)
 
 };
 

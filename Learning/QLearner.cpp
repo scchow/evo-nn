@@ -11,6 +11,8 @@ QLearner::QLearner(double lr, double discount, double probRandom, double maxRewa
     //set initial state
     currState = initState;
 
+    train = true;
+
     // let currAction be NULL since no actions have been performed yet
     // currAction = NULL;
     // std::cout << "Q Learner Initialized";
@@ -18,6 +20,11 @@ QLearner::QLearner(double lr, double discount, double probRandom, double maxRewa
 
 QLearner::~QLearner(){
     return;
+}
+
+
+void QLearner::setLearningFlag(bool flag){
+    train = flag;
 }
 
 size_t QLearner::getAction(){
@@ -46,13 +53,15 @@ size_t QLearner::getAction(){
 }
 
 void QLearner::updateQ(double reward, size_t nextState){
-    double maxValueNextState = std::distance(Q[nextState].begin(), std::max_element(Q[nextState].begin(), Q[nextState].end()));
     
-    // Update Q-value table
-    Q[currState][currAction] = 
-        Q[currState][currAction] + 
-        learningRate * (reward + (discountFactor * maxValueNextState) - Q[currState][currAction]);
-
+    if (train){
+        double maxValueNextState = std::distance(Q[nextState].begin(), std::max_element(Q[nextState].begin(), Q[nextState].end()));
+        
+        // Update Q-value table
+        Q[currState][currAction] = 
+            Q[currState][currAction] + 
+            learningRate * (reward + (discountFactor * maxValueNextState) - Q[currState][currAction]);
+    }
     // Update state to next state
     currState = nextState;
     // let actions be NULL again, since action no longer associated with currState
