@@ -114,6 +114,26 @@ double MultiNightBarQ::simulateEpoch(bool train){
     return G;
 }
 
+double MultiNightBarQ::computeFinalScore(){
+    // std::cout << "began simulateEpoch " << "\n";
+    // Get actions from each agent and
+    // keep track of how many went to each night
+    vector<size_t> barOccupancy(numNights, 0);
+
+    for (size_t i = 0; i < numAgents; ++i){
+        size_t action = agents[i]->getBestAction();
+        barOccupancy[action]++;
+    }
+
+    for (size_t i = 0; i < barNights.size(); ++i){ // compute reward for each night and sum
+      std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n" ;
+    }
+
+    // Compute G
+    double G = MultiNightBarQ::computeG(barOccupancy);
+
+    return G;
+}
 void MultiNightBarQ::train(size_t numEpochs){
     for (size_t epochInd = 0; epochInd < numEpochs; ++epochInd){
         MultiNightBarQ::initialiseEpoch();

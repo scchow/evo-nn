@@ -52,6 +52,12 @@ class MultiNightBarQ{
      */
     void train(size_t numEpochs);
 
+    /**
+     * computeFinalScore()
+     * 
+     * \brief Determines Final Global Reward with all agents using their best action
+     */
+    double computeFinalScore();
 
   private:
     size_t numNights;

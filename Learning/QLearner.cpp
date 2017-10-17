@@ -52,6 +52,12 @@ size_t QLearner::getAction(){
     return action;
 }
 
+size_t QLearner::getBestAction(){
+    size_t action = std::distance(Q[currState].begin(), std::max_element(Q[currState].begin(), Q[currState].end()));
+    currAction = action;
+    return action;
+}
+
 void QLearner::updateQ(double reward, size_t nextState){
     
     if (train){

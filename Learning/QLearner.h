@@ -48,6 +48,13 @@ class QLearner{
          */
         void setLearningFlag(bool flag);
 
+        /**
+         * getBestAction
+         *
+         * \brief Gets the next action the agent will take
+         */
+        size_t getBestAction();
+
     private:
         double learningRate; /// learning rate (alpha)
         double discountFactor; /// discount factor (gamma)
