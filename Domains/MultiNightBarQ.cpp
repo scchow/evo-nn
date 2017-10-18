@@ -2,8 +2,7 @@
 
 MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::string evalFunc, 
                                double lr, double discount, double probRandom, double maxReward, size_t nAgentsDisabled): 
-                               numNights(nNights), capacity(cap), 
-                               numAgents(nAgents){
+                               numNights(nNights), capacity(cap), numAgents(nAgents){
 
     size_t numStates = 1; // single state problem
     size_t numActions = nNights; // each agent can choose which night to go on

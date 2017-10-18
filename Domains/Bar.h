@@ -12,33 +12,36 @@ class Bar{
     Bar(size_t c): capacity(c){}
     ~Bar(){}
     
-    double GetReward(size_t nAgents, bool update=false){
+    double GetReward(int nAgents, bool update=false){
       numAgents = nAgents ;
       useUpdated = update ;
       if (update)
-        EnjoymentFunction = &Bar::UpdatedCongestion ;
+        reward = Bar::ClassicCongestion(nAgents);
       else
-        EnjoymentFunction = &Bar::ClassicCongestion ;
-      
-      (this->*EnjoymentFunction)() ;
+        reward = Bar::UpdatedCongestion(nAgents);
+
+      if (Bar::ClassicCongestion(12) != Bar::ClassicCongestion(8)){
+        std::cout << "no longer matching";
+      }
+
       return reward ;
     }
     
-    size_t GetCapacity(){return capacity ;}
+    int GetCapacity(){return capacity ;}
   private:
-    size_t capacity ;
+    int capacity ;
     bool useUpdated ;
-    size_t numAgents ;
+    int numAgents ;
     double reward ;
     
     void (Bar::*EnjoymentFunction)() ;
-    void ClassicCongestion(){
-      reward = (double)numAgents * exp(-pow((double)numAgents-(double)capacity,2)) ;
+    double ClassicCongestion(int occupancy){
+      return (double)capacity * exp(-0.1 * pow((double)occupancy-(double)capacity,2)) ;
 //      std::cout << "Attendance: " << numAgents << ", total enjoyment: " << r << "\n" ;
     }
     
-    void UpdatedCongestion(){ // currently the same, will update when we get to including "celebrity" agents
-      reward = (double)numAgents * exp(-pow((double)numAgents-(double)capacity,2)) ;
+    double UpdatedCongestion(int occupancy){ // currently the same, will update when we get to including "celebrity" agents
+      return (double)capacity * exp(-0.1 * pow((double)occupancy-(double)capacity,2)) ;
     }
 } ;
 
