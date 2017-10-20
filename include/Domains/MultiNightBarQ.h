@@ -73,7 +73,7 @@ class MultiNightBarQ{
      * \brief Outputs the agent's action in the following format 
      *        night number. number of agents attending that night, enjoyment 
      */   
-    void outputActions(char* B, std::vector<int> barOccupancy);
+    void outputActions(char* B, std::vector<size_t> barOccupancy);
 
     /**
      * outputQTables()

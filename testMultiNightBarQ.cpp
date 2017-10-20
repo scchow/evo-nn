@@ -46,7 +46,7 @@ int runMultiTrials(int trialNum){
   
   int buffSize = 100;
   char fileDir[buffSize];
-  sprintf(fileDir,"Results/MultiNightBarQ/%d_nights/%d_epochs/%d_agents/%d_disabled/%s/trial_%d",(int)numNights,(int)nEps, (int) agents, (int)nAgentsDisabled, evalFunc.c_str(),trialNum);
+  sprintf(fileDir,"Results/MultiNightBarQ/%d_nights/%d_epochs/%d_agents/%d_disabled/%s/trial_%d",(int)numNights,(int)nEps, (int) numAgents, (int)nAgentsDisabled, evalFunc.c_str(),trialNum);
   char mkdir[buffSize];
   sprintf(mkdir,"mkdir -p %s",fileDir);
   system(mkdir);
