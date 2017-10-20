@@ -106,4 +106,20 @@ void QLearner::updateQ(double reward, size_t nextState){
     // currAction = NULL;
 }
 
+void QLearner::outputQTable(char * A){
+    std::stringstream fileName;
+    fileName << A;
+    std::ofstream QTableFile;
+    QTableFile.open(fileName.str().c_str(),std::ios::app);
 
+    for (int i = 0; i < Q.size(); ++i)
+    {
+        for (int j = 0; j < Q[i].size(); ++j)
+        {
+            QTableFile << Q[i][j] << ",";
+        }
+        QTableFile << "\n";
+    }
+
+    QTableFile.close();
+}

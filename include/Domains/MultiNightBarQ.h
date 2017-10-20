@@ -59,15 +59,46 @@ class MultiNightBarQ{
      */
     double computeFinalScore();
 
-    double getQ00(){
-        return agents[0]->getQ00();
-    }
+     /**
+     * computeFinalScore()
+     * 
+     * \brief Determines Final Global Reward with all agents using their best action
+    *         And writes out the Q table and actions of each of the agents
+     */
+    double computeFinalScoreOutput(char* qTablePath, char* actionPath);
+
+    /**
+     * outputActions()
+     * 
+     * \brief Outputs the agent's action in the following format 
+     *        night number. number of agents attending that night, enjoyment 
+     */   
+    void outputActions(char* B, std::vector<int> barOccupancy);
+
+    /**
+     * outputQTables()
+     * 
+     * \brief Writes the Agents' Q Tables out to a file
+     * \note Leverages the fact that Agents are single state,
+     *       otherwise states in output file will get smooshed
+     */
+    void outputQTables(char* A);
+
+    /**
+     * outputParameters()
+     * 
+     * \brief Writes the parameters of the run out to a file
+     */
+    void outputParameters(char* fname);
+
+
 
   private:
     size_t numNights;
     size_t capacity;
     std::string evaluationFunction;
     size_t numAgents;
+    size_t numAgentsDisabled;
     
     vector<Bar> barNights;
     vector<QLearner *> agents;
@@ -80,7 +111,7 @@ class MultiNightBarQ{
     std::ofstream evalFile;
     std::ofstream actFile;
     std::ofstream barFile;
-    std::ofstream NNFile;
+    std::ofstream QTableFile;
 
     double learningRate; /// learning rate (alpha)
     double discountFactor; /// discount factor (gamma)

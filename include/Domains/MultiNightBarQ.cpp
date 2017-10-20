@@ -2,7 +2,7 @@
 
 MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::string evalFunc, 
                                double lr, double discount, double probRandom, double maxReward, size_t nAgentsDisabled): 
-                               numNights(nNights), capacity(cap), numAgents(nAgents){
+                               numNights(nNights), capacity(cap), numAgents(nAgents), numAgentsDisabled(nAgentsDisabled){
 
     size_t numStates = 1; // single state problem
     size_t numActions = nNights; // each agent can choose which night to go on
@@ -71,7 +71,7 @@ double MultiNightBarQ::simulateEpoch(bool train){
 
     std::cout << "\nSimulating Epoch Results:" << std::endl;
     for (size_t i = 0; i < barNights.size(); ++i){ // compute reward for each night and sum
-      std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n" ;
+        std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n" ;
     }
 
     // Compute G
@@ -119,7 +119,6 @@ double MultiNightBarQ::simulateEpoch(bool train){
 }
 
 double MultiNightBarQ::computeFinalScore(){
-    // std::cout << "began simulateEpoch " << "\n";
     // Get actions from each agent and
     // keep track of how many went to each night
     vector<size_t> barOccupancy(numNights, 0);
@@ -138,12 +137,82 @@ double MultiNightBarQ::computeFinalScore(){
 
     return G;
 }
-void MultiNightBarQ::train(size_t numEpochs){
-    for (size_t epochInd = 0; epochInd < numEpochs; ++epochInd){
-        MultiNightBarQ::initialiseEpoch();
-        MultiNightBarQ::simulateEpoch(true);
+
+
+double MultiNightBarQ::computeFinalScoreOutput(char* qTablePath, char* actionPath){
+    // Get actions from each agent and
+    // keep track of how many went to each night
+    vector<size_t> barOccupancy(numNights, 0);
+
+    for (size_t i = 0; i < numAgents; ++i){
+        size_t action = agents[i]->getBestAction();
+        barOccupancy[action]++;
+    }
+    std::cout << "\nTesting Best Action Results:" << std::endl;
+    for (size_t i = 0; i < barNights.size(); ++i){ // compute reward for each night and sum
+      std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n" ;
     }
 
+    // Compute G
+    double G = MultiNightBarQ::computeG(barOccupancy);
+
+    MultiNightBarQ::outputQTables(qTablePath);
+    MultiNightBarQ::outputActions(actionPath, barOccupancy);
+
+    return G;
 }
 
+// // Wrapper for writing epoch evaluations to specified files
+// void MultiNightBarQ::OutputPerformance(char* A){
+//     // Filename to write to stored in A
+//     std::stringstream fileName;
+//     fileName << A;
+//     if (evalFile.is_open()){
+//         evalFile.close();
+//     }
+//     evalFile.open(fileName.str().c_str(),std::ios::app);
 
+//     outputEvals = true;
+// }
+
+// Wrapper for writing agent actions to specified files
+void MultiNightBarQ::outputActions(char* B, std::vector<size_t> barOccupancy){
+    // Filename to write bar configurations to stored in B
+    std::stringstream barStream;
+    barStream << B;
+    if (barFile.is_open()){
+        barFile.close();
+    }
+    barFile.open(barStream.str().c_str(),std::ios::app);
+    for (size_t i = 0; i < barOccupancy.size(); ++i){ // compute reward for each night and sum
+        barFile << i << ", "; // Night Number
+        barFile << barOccupancy[i] << ", " ; // Occupancy
+        barFile << barNights[i].GetReward(barOccupancy[i]) << "\n"; //Enjoyment
+    }
+}
+
+// Wrapper for writing final control policies to specified file
+void MultiNightBarQ::outputQTables(char* A){
+    for (size_t i = 0; i < numAgents; i++)
+        agents[i]->outputQTable(A);
+}
+
+void MultiNightBarQ::outputParameters(char* fname){
+    std::stringstream fnameStream;
+    fnameStream << fname;
+
+    std::ofstream paramFile;
+
+    paramFile.open(fnameStream.str().c_str(), std::ios::app);
+    paramFile << "Nights: "<< numNights << "\n";
+    paramFile << "Capacity: " << capacity << "\n";
+    paramFile << "Number Agents: "<< numAgents << "\n";
+    paramFile << "Number Agents Disabled: " << numAgentsDisabled << "\n";
+    paramFile << "Evaluation Function: " << evaluationFunction << "\n";
+    paramFile << "Agent Q-Learning parameters:\n";
+    paramFile << "  Learning Rate: " << learningRate << "\n";
+    paramFile << "  Discount: " << discountFactor << "\n";
+    paramFile << "  Epsilon: " << epsilon << "\n";
+
+    paramFile.close();
+}

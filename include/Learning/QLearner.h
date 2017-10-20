@@ -56,11 +56,21 @@ class QLearner{
          */
         size_t getBestAction();
 
+        /**
+         * getCurrentAction
+         *
+         * \brief Gets the action the agent has taken in current state
+         * \note Must be called after getAction() for current state
+         */
         size_t getCurrentAction();
 
-        double getQ00(){
-            return Q[0][0];
-        }
+        /**
+         * outputQTable
+         *
+         * \brief Writes the Agent's Q table out to file
+         */
+        void outputQTable(char * A);
+
 
     private:
         double learningRate; /// learning rate (alpha)
@@ -75,7 +85,7 @@ class QLearner{
         std::random_device rd; /// Seed Generator
         std::mt19937_64 generator{rd()}; /// generator initialized with seed from rd
         std::uniform_real_distribution<> distReal{0.0, 1.0}; /// Random number distribution from 0 to 1
-        std::uniform_int_distribution<> distInt{0, 2};
+        std::uniform_int_distribution<> distInt{0, 2}; /// Random int distribution (to be overwritten upon actual init)
 };
 
 #endif // QLEARNER_H_
