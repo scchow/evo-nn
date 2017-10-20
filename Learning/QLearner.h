@@ -12,6 +12,7 @@
 #include <Eigen/Eigen>
 #include "Utilities/Utilities.h"
 
+using namespace easymath;
 
 class QLearner{
     public:
@@ -55,6 +56,10 @@ class QLearner{
          */
         size_t getBestAction();
 
+        double getQ00(){
+            return Q[0][0];
+        }
+
     private:
         double learningRate; /// learning rate (alpha)
         double discountFactor; /// discount factor (gamma)
@@ -65,7 +70,10 @@ class QLearner{
         size_t currState; /// current state represented by index
         size_t currAction; /// current action represented by index
         bool train; /// Determine if this agent will learn (update Q value)
-
+        std::random_device rd; /// Seed Generator
+        std::mt19937_64 generator{rd()}; /// generator initialized with seed from rd
+        std::uniform_real_distribution<> distReal{0.0, 1.0}; /// Random number distribution from 0 to 1
+        std::uniform_int_distribution<> distInt{0, 2};
 };
 
 #endif // QLEARNER_H_

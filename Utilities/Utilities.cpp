@@ -20,4 +20,5 @@ double sum(std::vector<double> v){
     t += v[i] ;
   return t ;
 }
+
 } // namespace easymath

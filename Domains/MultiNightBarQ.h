@@ -59,6 +59,10 @@ class MultiNightBarQ{
      */
     double computeFinalScore();
 
+    double getQ00(){
+        return agents[0]->getQ00();
+    }
+
   private:
     size_t numNights;
     size_t capacity;

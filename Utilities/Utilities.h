@@ -20,4 +20,9 @@ double pi_2_pi(double) ;
 // Sum elements in a vector
 double sum(std::vector<double>) ;
 } // namespace easymath
+
+template <typename T>
+std::vector<T> getMaxIndices(std::vector<T> v);
+#include "GetMaxIndices.hpp"
+
 #endif // UTILITIES_H_
