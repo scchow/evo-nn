@@ -26,14 +26,19 @@ QLearner::~QLearner(){
 
 
 void QLearner::setLearningFlag(bool flag){
+    // If stop learning, lock the agent to a specific action
+    if (flag == false){
+        // set the agent to perform the best action it has so far (random if no training at start)
+        currAction = QLearner::getAction();
+    }
     train = flag;
 }
 
 size_t QLearner::getAction(){
-    // TODO: optimize by turning uniform distribution into data memeber
-    
-    // std::mt19937 gen{rd()};
-    // std::uniform_real_distribution<> dis(0.0, 1.0);
+    // If 
+    if (train==false){
+        return currAction;
+    }
     double rand = distReal(generator);
     size_t action = 0;
     // std::cout << "Rand num:" << rand << std::endl;
@@ -112,9 +117,9 @@ void QLearner::outputQTable(char * A){
     std::ofstream QTableFile;
     QTableFile.open(fileName.str().c_str(),std::ios::app);
 
-    for (int i = 0; i < Q.size(); ++i)
+    for (size_t i = 0; i < Q.size(); ++i)
     {
-        for (int j = 0; j < Q[i].size(); ++j)
+        for (size_t j = 0; j < Q[i].size(); ++j)
         {
             QTableFile << Q[i][j] << ",";
         }

@@ -9,13 +9,13 @@ using std::vector;
 using std::string;
 using namespace Eigen;
 
-int runMultiTrials(int trialNum){
+int runMultiTrials(size_t numDisabled, int trialNum){
   std::cout << "Testing MultiNightBarQ class in MultiNightBarQ.h\n";
   
   size_t capacity = 10;
   size_t numNights = 10;
   size_t numAgents = 100;
-  size_t nAgentsDisabled = 0;
+  size_t nAgentsDisabled = numDisabled;
   string evalFunc = "D";
 
   double learningRate = 0.1;
@@ -23,7 +23,7 @@ int runMultiTrials(int trialNum){
   double epsilon = 0.005;
   double maxReward = 100;
 
-  size_t nEps = 10000;
+  size_t nEps = 30000;
 
   std::cout << "This program will use Q-learning to train " << numAgents << "-agent team over " << nEps << " learning epochs\n";
   std::cout << nAgentsDisabled << " Agents will be not be learning\n";
@@ -62,36 +62,32 @@ int runMultiTrials(int trialNum){
   std::stringstream resultsStream;
 
   resultsStream << resultsFilePath;
-  if (resultsStream.is_open()){
-      resultsStream.close();
-  }
 
   // open ofstream to write to file
   std::ofstream resultsFile;
-  resultsFile.open(resultsFilePath.str().c_str(),std::ios::app);
+  resultsFile.open(resultsStream.str().c_str(),std::ios::app);
 
   char actionsFilePath[buffSize];
   sprintf(actionsFilePath,"%s/actions.csv",fileDir);
 
   char qTableFilePath[buffSize];
-  sprintf(qTableFilePath,"%s/actions.csv",fileDir);
+  sprintf(qTableFilePath,"%s/qTables.csv",fileDir);
   // char cFile[buffSize];
   // sprintf(cFile,"%s/capacities.txt",fileDir);
-  // char readmeFile[buffSize];
-  // sprintf(readmeFile, "%s/readme.txt",fileDir);
+  char readmeFile[buffSize];
+  sprintf(readmeFile, "%s/readme.txt",fileDir);
   // char pveFile[buffSize];
   // sprintf(pveFile, "%s/performance_vs_epoch.csv",fileDir);
 
 
   // trainDomain.OutputPerformance(eFile);
-  trainDomain.OutputParameters(readmeFile);
+  trainDomain.outputParameters(readmeFile);
 
   std::cout << "Beginning Training";
   double G;
   trainDomain.initialiseEpoch();
   for (size_t n = 0; n < nEps; n++){
     std::cout << "Episode " << n << "...\n";
-    // std::cout << "Initiailized epoch";
     trainDomain.simulateEpoch(true);
     G = trainDomain.computeFinalScore();
     std::cout << "Score " << G << std::endl; 
@@ -147,9 +143,13 @@ int runMultiTrials(int trialNum){
 
 
 int main(){
-  int numTrials = 1;
-  for (size_t i = 0; i < numTrials; ++i){
-    runMultiTrials(i);
-  }
+    size_t numTrials = 10;
+    for (size_t i = 0; i < 1; ++i){
+          size_t numDisabled = i*10; 
+          for (size_t j = 0; j < numTrials; ++j){
+              runMultiTrials(numDisabled, j);
+          }
+    }
+
 }
 

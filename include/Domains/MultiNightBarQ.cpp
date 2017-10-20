@@ -129,7 +129,7 @@ double MultiNightBarQ::computeFinalScore(){
     }
     std::cout << "\nTesting Best Action Results:" << std::endl;
     for (size_t i = 0; i < barNights.size(); ++i){ // compute reward for each night and sum
-      std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n" ;
+        std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n";
     }
 
     // Compute G
@@ -150,7 +150,7 @@ double MultiNightBarQ::computeFinalScoreOutput(char* qTablePath, char* actionPat
     }
     std::cout << "\nTesting Best Action Results:" << std::endl;
     for (size_t i = 0; i < barNights.size(); ++i){ // compute reward for each night and sum
-      std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n" ;
+        std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n";
     }
 
     // Compute G
