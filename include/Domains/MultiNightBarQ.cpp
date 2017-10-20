@@ -69,46 +69,51 @@ double MultiNightBarQ::simulateEpoch(bool train){
         barOccupancy[action]++;
     }
 
+    std::cout << "\nSimulating Epoch Results:" << std::endl;
     for (size_t i = 0; i < barNights.size(); ++i){ // compute reward for each night and sum
       std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n" ;
     }
+
     // Compute G
     double G = MultiNightBarQ::computeG(barOccupancy);
 
-    if (useD){
-        //Compute D
-        std::vector<double> D_vec;
-        for (size_t i = 0; i < numAgents; ++i){
-            int agentAction = agents[i]->getAction();
+    if (train){
+        if (useD){
+            //Compute D
+            std::vector<double> D_vec;
 
-            // Remove agent from bar
-            barOccupancy[agentAction]--;
+            for (size_t i = 0; i < numAgents; ++i){
+                int agentAction = agents[i]->getCurrentAction();
 
-            double G_hat = MultiNightBarQ::computeG(barOccupancy);
+                // Remove agent from bar
+                barOccupancy[agentAction]--;
 
-            D_vec.push_back(G-G_hat);
+                double G_hat = MultiNightBarQ::computeG(barOccupancy);
 
-            // Add agent back into bar
-            barOccupancy[agentAction]++;
-        }
-        // Update Q-Values
-        if (train){
+                D_vec.push_back(G-G_hat);
+
+                // Add agent back into bar
+                barOccupancy[agentAction]++;
+            }
+
             for (size_t i = 0; i < numAgents; ++i){
                 // Pass D as reward and remain at state 0
                 agents[i]->updateQ(D_vec[i], 0);
             }
-        }
-    }
 
-    // otherwise not using D, pass in G instead
-    else{
-        if (train){
+        }
+
+        // otherwise not using D, pass in G instead
+        else{
+
             for (size_t i = 0; i < numAgents; ++i){
                 // Pass G as reward and remain at state 0
                 agents[i]->updateQ(G, 0);
             }
+
         }
     }
+
 
     return G;
 }
@@ -123,7 +128,7 @@ double MultiNightBarQ::computeFinalScore(){
         size_t action = agents[i]->getBestAction();
         barOccupancy[action]++;
     }
-
+    std::cout << "\nTesting Best Action Results:" << std::endl;
     for (size_t i = 0; i < barNights.size(); ++i){ // compute reward for each night and sum
       std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n" ;
     }

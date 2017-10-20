@@ -23,7 +23,7 @@ int main(){
   double epsilon = 0.01;
   double maxReward = 100;
 
-  size_t nEps = 200;
+  size_t nEps = 10000;
 
   std::cout << "This program will use Q-learning to train " << numAgents << "-agent team over " << nEps << " learning epochs\n" ;
   std::cout << nAgentsDisabled << " Agents will be not be learning\n";
@@ -71,14 +71,14 @@ int main(){
 
   // std::cout << "Beginning Training";
   double G;
-
+  trainDomain.initialiseEpoch();
   for (size_t n = 0; n < nEps; n++){
     std::cout << "Episode " << n << "...\n" ;
-    trainDomain.initialiseEpoch();
     // std::cout << "Initiailized epoch";
-    G = trainDomain.simulateEpoch(true);
+    trainDomain.simulateEpoch(true);
+    G = trainDomain.computeFinalScore();
     std::cout << "Score " << G << std::endl; 
-    std::cout << "Q[0][numActions-1] value: " << trainDomain.getQ00() <<std::endl;
+    // std::cout << "Q[0][numActions-1] value: " << trainDomain.getQ00() <<std::endl;
  
   }
   std::cout << "Final Score" << std::endl;

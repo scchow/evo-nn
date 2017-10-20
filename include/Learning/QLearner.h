@@ -56,6 +56,8 @@ class QLearner{
          */
         size_t getBestAction();
 
+        size_t getCurrentAction();
+
         double getQ00(){
             return Q[0][0];
         }

@@ -15,14 +15,11 @@ class Bar{
     double GetReward(int nAgents, bool update=false){
       numAgents = nAgents ;
       useUpdated = update ;
+      
       if (update)
         reward = Bar::ClassicCongestion(nAgents);
       else
         reward = Bar::UpdatedCongestion(nAgents);
-
-      if (Bar::ClassicCongestion(12) != Bar::ClassicCongestion(8)){
-        std::cout << "no longer matching";
-      }
 
       return reward ;
     }

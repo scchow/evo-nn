@@ -41,7 +41,7 @@ size_t QLearner::getAction(){
     // with probability epsilon, choose a random action
     if (rand < epsilon){
         int randAction = distInt(generator);
-        std::cout << "Rand action:" << randAction << std::endl;
+        // std::cout << "Rand action:" << randAction << std::endl;
 
         action = randAction;
         // std::cout << "new action "<< action << "\n";
@@ -50,10 +50,6 @@ size_t QLearner::getAction(){
     else{
         // std::cout << "going greedy, rand " << rand << "\n";
         std::vector<double> maxIndices = getMaxIndices(Q[currState]);
-        // for (size_t i = 0; i < maxIndices.size(); ++i){
-        //     std::cout << maxIndices[i];
-        // }
-        // std::cout << "\n";
         if (maxIndices.size() == 1){
             action = maxIndices[0];
         }
@@ -89,10 +85,14 @@ size_t QLearner::getBestAction(){
     return action;
 }
 
+size_t QLearner::getCurrentAction(){
+    return currAction;
+}
+
 void QLearner::updateQ(double reward, size_t nextState){
     
     if (train){
-        double maxValueNextState = std::distance(Q[nextState].begin(), std::max_element(Q[nextState].begin(), Q[nextState].end()));
+        double maxValueNextState = *std::max_element( Q[currState].begin(), Q[currState].end() );
         
         // Update Q-value table
         Q[currState][currAction] = 
