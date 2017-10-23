@@ -197,7 +197,7 @@ void MultiNightBarQ::outputQTables(char* A){
         agents[i]->outputQTable(A);
 }
 
-void MultiNightBarQ::outputParameters(char* fname){
+void MultiNightBarQ::outputParameters(char* fname, size_t numEpochs){
     std::stringstream fnameStream;
     fnameStream << fname;
 
@@ -213,6 +213,7 @@ void MultiNightBarQ::outputParameters(char* fname){
     paramFile << "  Learning Rate: " << learningRate << "\n";
     paramFile << "  Discount: " << discountFactor << "\n";
     paramFile << "  Epsilon: " << epsilon << "\n";
+    paramFile << "Epochs: " << numEpochs << "\n";
 
     paramFile.close();
 }

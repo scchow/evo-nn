@@ -89,7 +89,7 @@ class MultiNightBarQ{
      * 
      * \brief Writes the parameters of the run out to a file
      */
-    void outputParameters(char* fname);
+    void outputParameters(char* fname, size_t numEpochs);
 
 
 
