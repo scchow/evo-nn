@@ -18,6 +18,10 @@ class Bar{
 
     ~Bar(){}
     
+    int GetPadding(){
+      return padOccupancy;
+    }
+
     double GetReward(int nAgents, bool update=false){
       numAgents = nAgents ;
       useUpdated = update ;

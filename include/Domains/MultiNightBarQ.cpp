@@ -223,6 +223,7 @@ void MultiNightBarQ::outputActions(char* B, std::vector<size_t> barOccupancy){
     barFile.open(barStream.str().c_str(),std::ios::app);
     for (size_t i = 0; i < barOccupancy.size(); ++i){ // compute reward for each night and sum
         barFile << i << ", "; // Night Number
+        barFile << barNights[i].GetPadding() << ", "; // Padding
         barFile << barOccupancy[i] << ", " ; // Occupancy
         barFile << barNights[i].GetReward(barOccupancy[i]) << "\n"; //Enjoyment
     }

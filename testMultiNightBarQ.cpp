@@ -9,7 +9,7 @@ using std::vector;
 using std::string;
 using namespace Eigen;
 
-int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum){
+int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vector<int> barPadding){
     std::cout << "Testing MultiNightBarQ class in MultiNightBarQ.h\n";
     
     size_t capacity = 10;
@@ -21,9 +21,11 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum){
     double learningRate = 0.1;
     double discount = 0.9;
     double epsilon = 0.01;
-    double maxReward = 100;
+    double maxReward = 10; // set max reward to 10 since agents get D as reward
 
     size_t nEps = 10000;
+
+    // std::vector<int> barPadding = {};
 
     std::cout << "This program will use Q-learning to train " << numAgents << "-agent team over " << nEps << " learning epochs\n";
     std::cout << nAgentsDisabled << " Agents will be not be learning\n";
@@ -41,7 +43,7 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum){
     // std::cout << "Please enter trial number [NOTE: no checks enabled to prevent overwriting existing files, user must make sure trial number is unique]: ";
     // std::cin >> trialNum;
     
-    MultiNightBarQ trainDomain(numNights, capacity, numAgents, evalFunc, 
+    MultiNightBarQ trainDomain(numNights, capacity, barPadding, numAgents, evalFunc, 
                                  learningRate, discount, epsilon, maxReward, nAgentsDisabled);
     
     int buffSize = 100;
@@ -149,17 +151,25 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum){
 
 int main(){
     size_t numTrials = 5;
-    std::vector<size_t> numAgentVariations = {100};
-    for (size_t k = 0; k < numAgentVariations.size(); ++k){
-      size_t numAgents = numAgentVariations[k];
-      for (size_t i = 1; i < 10; ++i){
-            size_t numDisabled = i*10; 
-            for (size_t j = 0; j < numTrials; ++j){
-                if (numAgents > numDisabled){
-                    runMultiTrials(numAgents, numDisabled, j);
-                }
-            }
-      }
+    // std::vector<size_t> numAgentVariations = {100};
+    // for (size_t k = 0; k < numAgentVariations.size(); ++k){
+    //   size_t numAgents = numAgentVariations[k];
+    //   for (size_t i = 1; i < 10; ++i){
+    //         size_t numDisabled = i*10; 
+    //         for (size_t j = 0; j < numTrials; ++j){
+    //             if (numAgents > numDisabled){
+    //                 runMultiTrials(numAgents, numDisabled, j);
+    //             }
+    //         }
+    //   }
+    // }
+
+    for (size_t j = 0; j < numTrials; ++j){
+        size_t numAgents = 90;
+        size_t numDisabled = 0;
+        int trialNum = j;
+        std::vector<int> barPadding = {1, 1, 0, 0, 2, 1, 2,1,0, 2};
+        runMultiTrials(numAgents, numDisabled, trialNum, barPadding);
     }
 }
 
