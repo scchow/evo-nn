@@ -9,7 +9,13 @@ using std::vector ;
 
 class Bar{
   public:
-    Bar(size_t c): capacity(c){}
+    Bar(size_t c): capacity(c){
+      padOccupancy = 0;
+    }
+
+    Bar(size_t c, int padding): capacity(c), padOccupancy(padding){
+    }
+
     ~Bar(){}
     
     double GetReward(int nAgents, bool update=false){
@@ -30,15 +36,18 @@ class Bar{
     bool useUpdated ;
     int numAgents ;
     double reward ;
-    
+    int padOccupancy; /// pad occupancy with this number of agents 
+
     void (Bar::*EnjoymentFunction)() ;
     double ClassicCongestion(int occupancy){
-      return (double)capacity * exp(-0.1 * pow((double)occupancy-(double)capacity,2)) ;
+      int paddedOccupancy = occupancy + padOccupancy;
+      return (double)capacity * exp(-0.1 * pow((double)paddedOccupancy-(double)capacity,2)) ;
 //      std::cout << "Attendance: " << numAgents << ", total enjoyment: " << r << "\n" ;
     }
     
     double UpdatedCongestion(int occupancy){ // currently the same, will update when we get to including "celebrity" agents
-      return (double)capacity * exp(-0.1 * pow((double)occupancy-(double)capacity,2)) ;
+      int paddedOccupancy = occupancy + padOccupancy;
+      return (double)capacity * exp(-0.1 * pow((double)paddedOccupancy-(double)capacity,2)) ;
     }
 } ;
 

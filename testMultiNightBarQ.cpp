@@ -72,6 +72,10 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum){
 
     char qTableFilePath[buffSize];
     sprintf(qTableFilePath,"%s/qTables.csv",fileDir);
+
+    char agentActionsFilePath[buffSize];
+    sprintf(agentActionsFilePath,"%s/agent_actions.csv",fileDir);
+
     // char cFile[buffSize];
     // sprintf(cFile,"%s/capacities.txt",fileDir);
     char readmeFile[buffSize];
@@ -99,6 +103,7 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum){
     std::cout << "Final Score" << std::endl;
     G = trainDomain.computeFinalScoreOutput(qTableFilePath, actionsFilePath);
     std::cout << "Score " << G << std::endl; 
+    trainDomain.outputAgentActions(agentActionsFilePath);
     // char NNFile[buffSize];
     // sprintf(NNFile,"%s/NNs.txt",fileDir);
     
@@ -143,11 +148,11 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum){
 
 
 int main(){
-    size_t numTrials = 20;
-    std::vector<size_t> numAgentVariations = {200, 150, 50};
+    size_t numTrials = 5;
+    std::vector<size_t> numAgentVariations = {100};
     for (size_t k = 0; k < numAgentVariations.size(); ++k){
       size_t numAgents = numAgentVariations[k];
-      for (size_t i = 0; i < 10; ++i){
+      for (size_t i = 1; i < 10; ++i){
             size_t numDisabled = i*10; 
             for (size_t j = 0; j < numTrials; ++j){
                 if (numAgents > numDisabled){

@@ -27,10 +27,47 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::
     }
     else{
         std::cout << "ERROR: Unknown evaluation function type [" << evalFunc << "], setting to global evaluation!\n";
-        useD = false;
+        
+    }
+
+    for (size_t i = 0; i < nNights; ++i){
+        barOccupancyPadding.push_back(0);
     }
 
 }
+
+MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barOccupancyPad, size_t nAgents, std::string evalFunc, 
+                               double lr, double discount, double probRandom, double maxReward, size_t nAgentsDisabled): 
+                               numNights(nNights), capacity(cap), numAgents(nAgents), numAgentsDisabled(nAgentsDisabled),
+                               barOccupancyPadding(barOccupancyPad){
+
+    size_t numStates = 1; // single state problem
+    size_t numActions = nNights; // each agent can choose which night to go on
+    size_t initState = 0; // all agents start with the only state they can be on
+
+    // Create QLearning Agents for each of the agents
+    for (size_t i = 0; i < numAgents; ++i){
+        QLearner* newAgent = new QLearner(lr, discount, probRandom, maxReward, 
+                                        numStates, numActions, initState);
+        if (i < nAgentsDisabled){
+            newAgent->setLearningFlag(false);
+        }
+        agents.push_back(newAgent);
+    }
+
+    // Determine Evaluation Function to use
+    if (evalFunc.compare("D") == 0){
+        useD = true;
+    }
+    else if (evalFunc.compare("G") == 0){
+        useD = false;
+    }
+    else{
+        std::cout << "ERROR: Unknown evaluation function type [" << evalFunc << "], setting to global evaluation!\n";
+        useD = false;
+    }
+}
+
 
 MultiNightBarQ::~MultiNightBarQ(){
     for (size_t i = 0; i < numAgents; ++i){
@@ -43,7 +80,7 @@ void MultiNightBarQ::initialiseEpoch(){
     // Initialise each night as a separate Bar object
     barNights.clear();
     for (size_t i = 0; i < numNights; ++i){
-        barNights.push_back(Bar(capacity));
+        barNights.push_back(Bar(capacity, barOccupancyPadding[i]));
     }
 }
 
@@ -217,3 +254,17 @@ void MultiNightBarQ::outputParameters(char* fname, size_t numEpochs){
 
     paramFile.close();
 }
+
+void MultiNightBarQ::outputAgentActions(char* fname){
+    std::stringstream fnameStream;
+    fnameStream << fname;
+    std::ofstream actionFile;
+
+    actionFile.open(fnameStream.str().c_str(), std::ios::app);
+    for (size_t i = 0; i < agents.size(); ++i){
+        actionFile << i << ", " << agents[i]->isLearning() << ", " << agents[i]->getBestAction() << "\n"; 
+    }
+
+    actionFile.close();
+}
+

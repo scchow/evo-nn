@@ -19,6 +19,9 @@ class MultiNightBarQ{
     MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::string evalFunc, 
                    double lr, double discountFactor, double probRandom, double maxReward, size_t nAgentsDisabled);
 
+    MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barOccupancyPad, size_t nAgents, std::string evalFunc, 
+                   double lr, double discountFactor, double probRandom, double maxReward, size_t nAgentsDisabled);
+
     ~MultiNightBarQ();
     
     /**
@@ -91,6 +94,13 @@ class MultiNightBarQ{
      */
     void outputParameters(char* fname, size_t numEpochs);
 
+    /**
+     * outputAgentActions()
+     * 
+     * \brief Writes the best actions of the agent out to a file
+     */
+    void outputAgentActions(char* fname);    
+
 
 
   private:
@@ -116,6 +126,8 @@ class MultiNightBarQ{
     double learningRate; /// learning rate (alpha)
     double discountFactor; /// discount factor (gamma)
     double epsilon; /// chance of selecting random action
+    
+    std::vector<int> barOccupancyPadding; // for each bar, how much should the occupancy be padded
 };
 
 #endif // MULTI_NIGHT_BAR_Q_H_

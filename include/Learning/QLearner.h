@@ -71,6 +71,10 @@ class QLearner{
          */
         void outputQTable(char * A);
 
+        bool isLearning(){
+            return train;
+        }
+
 
     private:
         double learningRate; /// learning rate (alpha)
