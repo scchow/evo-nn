@@ -35,7 +35,7 @@ void QLearner::setLearningFlag(bool flag){
 }
 
 size_t QLearner::getAction(){
-    // If 
+    // If agent is not learning, just return set action
     if (train==false){
         return currAction;
     }
@@ -72,6 +72,10 @@ size_t QLearner::getAction(){
 }
 
 size_t QLearner::getBestAction(){
+    // If agent is not learning, just return set action
+    if (train==false){
+        return currAction;
+    }
     size_t action = 0;
     std::vector<double> maxIndices = getMaxIndices(Q[currState]);
     // for (size_t i = 0; i < maxIndices.size(); ++i){

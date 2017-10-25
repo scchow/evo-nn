@@ -7,9 +7,9 @@ def main():
     epochs = 10000
     nights = 10
     capacity = 10
-    variations = [0]
+    variations = [0, 10, 20, 50]
     numTrials = 5
-    numAgents = 90
+    numAgents = 100
     baseResultsPath = os.path.join("build", "Results", "MultiNightBarQ", str(nights)+"_nights", str(epochs)+"_epochs", str(numAgents) + "_agents")
 
     # variations = [0, 90, 50]

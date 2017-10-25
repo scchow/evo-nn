@@ -151,25 +151,28 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vect
 
 int main(){
     size_t numTrials = 5;
-    // std::vector<size_t> numAgentVariations = {100};
-    // for (size_t k = 0; k < numAgentVariations.size(); ++k){
-    //   size_t numAgents = numAgentVariations[k];
-    //   for (size_t i = 1; i < 10; ++i){
-    //         size_t numDisabled = i*10; 
-    //         for (size_t j = 0; j < numTrials; ++j){
-    //             if (numAgents > numDisabled){
-    //                 runMultiTrials(numAgents, numDisabled, j);
-    //             }
-    //         }
-    //   }
-    // }
-
-    for (size_t j = 0; j < numTrials; ++j){
-        size_t numAgents = 90;
-        size_t numDisabled = 0;
-        int trialNum = j;
-        std::vector<int> barPadding = {1, 1, 0, 0, 2, 1, 2,1,0, 2};
-        runMultiTrials(numAgents, numDisabled, trialNum, barPadding);
+    std::vector<size_t> numAgentVariations = {100};
+    std::vector<int> barPadding = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    for (size_t k = 0; k < numAgentVariations.size(); ++k){
+      size_t numAgents = numAgentVariations[k];
+      for (size_t i = 0; i < 10; ++i){
+            size_t numDisabled = i*10; 
+            for (size_t j = 0; j < numTrials; ++j){
+                if (numAgents > numDisabled){
+                    runMultiTrials(numAgents, numDisabled, j, barPadding);
+                }
+            }
+      }
     }
+
+
+////Testing with padding
+    // for (size_t j = 0; j < numTrials; ++j){
+    //     size_t numAgents = 90;
+    //     size_t numDisabled = 0;
+    //     int trialNum = j;
+    //     std::vector<int> barPadding = {1, 1, 0, 0, 2, 1, 2, 1, 0, 2};
+    //     runMultiTrials(numAgents, numDisabled, trialNum, barPadding);
+    // }
 }
 
