@@ -29,7 +29,7 @@ void QLearner::setLearningFlag(bool flag){
     // If stop learning, lock the agent to a specific action
     if (flag == false){
         // set the agent to perform the best action it has so far (random if no training at start)
-        currAction = QLearner::getAction();
+        currAction = QLearner::getBestAction();
     }
     train = flag;
 }
@@ -59,9 +59,9 @@ size_t QLearner::getAction(){
             action = maxIndices[0];
         }
         else{
-            std::uniform_int_distribution<> dist(0, maxIndices.size());
+            std::uniform_int_distribution<> dist(0, maxIndices.size()-1);
             int randInt = dist(generator);
-            action = randInt;
+            action = maxIndices[randInt];
             // std::cout << "Multiple best values, picking index: " << action << std::endl;
         }
         // std::cout << "max greedy action "<< action << "\n";
@@ -86,9 +86,9 @@ size_t QLearner::getBestAction(){
         action = maxIndices[0];
     }
     else{
-        std::uniform_int_distribution<> dist(0, maxIndices.size());
+        std::uniform_int_distribution<> dist(0, maxIndices.size()-1);
         int randInt = dist(generator);
-        action = randInt;
+        action = maxIndices[randInt];
         // std::cout << "Multiple best values, picking index: " << action << std::endl;
     }
     return action;
@@ -121,10 +121,8 @@ void QLearner::outputQTable(char * A){
     std::ofstream QTableFile;
     QTableFile.open(fileName.str().c_str(),std::ios::app);
 
-    for (size_t i = 0; i < Q.size(); ++i)
-    {
-        for (size_t j = 0; j < Q[i].size(); ++j)
-        {
+    for (size_t i = 0; i < Q.size(); ++i){
+        for (size_t j = 0; j < Q[i].size(); ++j){
             QTableFile << Q[i][j] << ",";
         }
         QTableFile << "\n";
