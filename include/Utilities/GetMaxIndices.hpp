@@ -1,5 +1,3 @@
-#include <iostream>
-
 template <class T>
 std::vector<T> getMaxIndices ( std::vector<T> v) {
   T maxValue = v[0];

@@ -1,8 +1,10 @@
 #include "MultiNightBarQ.h"
 
 MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::string evalFunc, 
-                               double lr, double discount, double probRandom, double maxReward, size_t nAgentsDisabled): 
-                               numNights(nNights), capacity(cap), numAgents(nAgents), numAgentsDisabled(nAgentsDisabled){
+                               double lr, double discount, double probRandom, double maxReward, 
+                               size_t nAgentsDisabled, bool dLearning): 
+                               numNights(nNights), capacity(cap), numAgents(nAgents), 
+                               numAgentsDisabled(nAgentsDisabled), dynamicLearning(dLearning){
 
     size_t numStates = 1; // single state problem
     size_t numActions = nNights; // each agent can choose which night to go on
@@ -37,8 +39,9 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::
 }
 
 MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barOccupancyPad, size_t nAgents, std::string evalFunc, 
-                               double lr, double discount, double probRandom, double maxReward, size_t nAgentsDisabled): 
-                               numNights(nNights), capacity(cap), numAgents(nAgents), numAgentsDisabled(nAgentsDisabled),
+                               double lr, double discount, double probRandom, double maxReward, size_t nAgentsDisabled, bool dLearning): 
+                               numNights(nNights), capacity(cap), numAgents(nAgents), 
+                               numAgentsDisabled(nAgentsDisabled), dynamicLearning(dLearning),
                                barOccupancyPadding(barOccupancyPad){
 
     size_t numStates = 1; // single state problem
@@ -114,40 +117,75 @@ double MultiNightBarQ::simulateEpoch(bool train){
     // Compute G
     double G = MultiNightBarQ::computeG(barOccupancy);
 
-    if (train){
-        if (useD){
-            //Compute D
-            std::vector<double> D_vec;
+    // Choose agents to disable
+    // Note, disable agents after updating so that they get updated first
+    std::vector<bool> newLearningStates(numAgents, 1);
+    if (dynamicLearning){
+        double deltaG = G - prevG;
+        std::vector<double> impacts;
 
-            for (size_t i = 0; i < numAgents; ++i){
-                int agentAction = agents[i]->getCurrentAction();
-
-                // Remove agent from bar
-                barOccupancy[agentAction]--;
-
-                double G_hat = MultiNightBarQ::computeG(barOccupancy);
-
-                D_vec.push_back(G-G_hat);
-
-                // Add agent back into bar
-                barOccupancy[agentAction]++;
-            }
-
-            for (size_t i = 0; i < numAgents; ++i){
-                // Pass D as reward and remain at state 0
-                agents[i]->updateQ(D_vec[i], 0);
-            }
-
+        // get impact of each agent
+        for (size_t i = 0; i < numAgents; ++i){
+            impacts.push_back(agents[i]->computeImpact(deltaG));
         }
 
-        // otherwise not using D, pass in G instead
-        else{
+        std::vector<size_t> sortedIndices = sortIndices(impacts);
+        // size_t numLearningAgents = numAgents - numAgentsDisabled;
 
-            for (size_t i = 0; i < numAgents; ++i){
-                // Pass G as reward and remain at state 0
-                agents[i]->updateQ(G, 0);
-            }
+        // select the most impactful quarter of agents to continue training
+        for (size_t i = 0; i < numAgentsDisabled; ++i){
+            newLearningStates[sortedIndices[i]] = false;
+        }
 
+        std::cout << "Impact Vector: ";
+        for (size_t i = 0; i < impacts.size(); ++i){ // compute reward for each night and sum
+            std::cout << impacts[i] << "," ;
+        }
+        std::cout << "\n";
+
+
+    }
+
+    if (useD){
+        //Compute D
+        std::vector<double> D_vec;
+
+        for (size_t i = 0; i < numAgents; ++i){
+            int agentAction = agents[i]->getCurrentAction();
+
+            // Remove agent from bar
+            barOccupancy[agentAction]--;
+
+            double G_hat = MultiNightBarQ::computeG(barOccupancy);
+
+            D_vec.push_back(G-G_hat);
+
+            // Add agent back into bar
+            barOccupancy[agentAction]++;
+        }
+
+        for (size_t i = 0; i < numAgents; ++i){
+            // Pass D as reward and remain at state 0
+            agents[i]->updateQ(D_vec[i], 0);
+        }
+
+    }
+
+    // otherwise not using D, pass in G instead
+    else{
+
+        for (size_t i = 0; i < numAgents; ++i){
+            // Pass G as reward and remain at state 0
+            agents[i]->updateQ(G, 0);
+        }
+
+    }
+
+    // disable agents here
+    if (dynamicLearning){
+        for (size_t i = 0; i < numAgents; ++i){
+            // Pass G as reward and remain at state 0
+            agents[i]->setLearningFlag(newLearningStates[i]);
         }
     }
 
@@ -199,19 +237,6 @@ double MultiNightBarQ::computeFinalScoreOutput(char* qTablePath, char* actionPat
     return G;
 }
 
-// // Wrapper for writing epoch evaluations to specified files
-// void MultiNightBarQ::OutputPerformance(char* A){
-//     // Filename to write to stored in A
-//     std::stringstream fileName;
-//     fileName << A;
-//     if (evalFile.is_open()){
-//         evalFile.close();
-//     }
-//     evalFile.open(fileName.str().c_str(),std::ios::app);
-
-//     outputEvals = true;
-// }
-
 // Wrapper for writing agent actions to specified files
 void MultiNightBarQ::outputActions(char* B, std::vector<size_t> barOccupancy){
     // Filename to write bar configurations to stored in B
@@ -257,11 +282,15 @@ void MultiNightBarQ::outputParameters(char* fname, size_t numEpochs){
 }
 
 void MultiNightBarQ::outputAgentActions(char* fname){
+    //Write the file path to a stream
     std::stringstream fnameStream;
     fnameStream << fname;
-    std::ofstream actionFile;
 
+    //use stream to open file
+    std::ofstream actionFile;
     actionFile.open(fnameStream.str().c_str(), std::ios::app);
+
+    // Write the best actions to a file
     for (size_t i = 0; i < agents.size(); ++i){
         actionFile << i << ", " << agents[i]->isLearning() << ", " << agents[i]->getBestAction() << "\n"; 
     }

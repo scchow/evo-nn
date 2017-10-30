@@ -2,7 +2,9 @@
 #define QLEARNER_H_
 
 #include <stdio.h>
+#include <stdlib.h> // abs
 #include <iostream>
+#include <iomanip>      // std::setprecision
 #include <math.h>
 #include <chrono>
 #include <random>
@@ -41,7 +43,6 @@ class QLearner{
          */
         void updateQ(double reward, size_t nextState);
 
-
         /**
          * setLearningFlag()
          *
@@ -71,21 +72,40 @@ class QLearner{
          */
         void outputQTable(char * A);
 
-        bool isLearning(){
-            return train;
-        }
+        /**
+         * isLearning
+         *
+         * \brief Outputs if the agent is learning
+         */
+        bool isLearning();
+
+        /**
+         * computeImpact
+         * 
+         * \brief Calculates and outputs the dG/dPi of the agent
+         * \note Must be called before updateQ for the current step
+         */
+        double computeImpact(double deltaG);
 
 
     private:
         double learningRate; /// learning rate (alpha)
         double discountFactor; /// discount factor (gamma)
         double epsilon; /// chance of selecting random action
+
         size_t numStates; /// number of states
         size_t numActions; /// number of actions
-        std::vector<std::vector<double>> Q; /// Q state-action 
+
+        std::vector<std::vector<double>> Q; /// Q state-action table
+
+        double deltaQ; /// difference between current policy and previous policy
+
         size_t currState; /// current state represented by index
+        size_t prevState; /// previous state represented by index
         size_t currAction; /// current action represented by index
+
         bool train; /// Determine if this agent will learn (update Q value)
+
         std::random_device rd; /// Seed Generator
         std::mt19937_64 generator{rd()}; /// generator initialized with seed from rd
         std::uniform_real_distribution<> distReal{0.0, 1.0}; /// Random number distribution from 0 to 1

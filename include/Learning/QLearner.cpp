@@ -10,14 +10,13 @@ QLearner::QLearner(double lr, double discount, double probRandom, double maxRewa
 
     //set initial state
     currState = initState;
+    prevState = initState; // initialize prevState to current state to prevent errors
+    deltaQ = 1; // let deltaQ be 1 in case computeImpact is called b
 
     train = true;
 
     distInt = std::uniform_int_distribution<>(0, nActions);
 
-    // let currAction be NULL since no actions have been performed yet
-    // currAction = NULL;
-    // std::cout << "Q Learner Initialized";
 }
 
 QLearner::~QLearner(){
@@ -100,19 +99,23 @@ size_t QLearner::getCurrentAction(){
 
 void QLearner::updateQ(double reward, size_t nextState){
     
+    // only updateQ if agent is learning
     if (train){
-        double maxValueNextState = *std::max_element( Q[currState].begin(), Q[currState].end() );
+
+        double maxValueNextState = *std::max_element( Q[nextState].begin(), Q[nextState].end() );
         
+        double dQ = learningRate * (reward + (discountFactor * maxValueNextState) - Q[currState][currAction]);
+
         // Update Q-value table
-        Q[currState][currAction] = 
-            Q[currState][currAction] + 
-            learningRate * (reward + (discountFactor * maxValueNextState) - Q[currState][currAction]);
-    }
+        Q[currState][currAction] = Q[currState][currAction] + dQ;
+
+        // Compute change in policy for future impact computation
+        deltaQ = abs(dQ);
+    
     // Update state to next state
+    prevState = currState;
     currState = nextState;
-    // let actions be NULL again, since action no longer associated with currState
-    // this will ensure getAction() is called before updateQ()
-    // currAction = NULL;
+    }
 }
 
 void QLearner::outputQTable(char * A){
@@ -129,4 +132,12 @@ void QLearner::outputQTable(char * A){
     }
 
     QTableFile.close();
+}
+
+bool QLearner::isLearning(){
+    return train;
+}
+
+double QLearner::computeImpact(double deltaG){
+    return deltaG/deltaQ;
 }

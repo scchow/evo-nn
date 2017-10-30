@@ -17,10 +17,12 @@
 class MultiNightBarQ{
   public:
     MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::string evalFunc, 
-                   double lr, double discountFactor, double probRandom, double maxReward, size_t nAgentsDisabled);
+                   double lr, double discountFactor, double probRandom, double maxReward,
+                   size_t nAgentsDisabled, bool dLearning);
 
     MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barOccupancyPad, size_t nAgents, std::string evalFunc, 
-                   double lr, double discountFactor, double probRandom, double maxReward, size_t nAgentsDisabled);
+                   double lr, double discountFactor, double probRandom, double maxReward,
+                   size_t nAgentsDisabled, bool dLearning);
 
     ~MultiNightBarQ();
     
@@ -40,7 +42,6 @@ class MultiNightBarQ{
      */
     double simulateEpoch(bool train = true);
 
-
     /**
      * computeG()
      * 
@@ -52,6 +53,7 @@ class MultiNightBarQ{
      * train()
      * 
      * \brief Trains the Q agents for numEpochs
+     * \note NOT IMPLEMENTED YET, use simulateEpoch instead
      */
     void train(size_t numEpochs);
 
@@ -117,6 +119,9 @@ class MultiNightBarQ{
     bool outputActs;
 
     bool useD;
+    bool dynamicLearning;
+
+    double prevG; /// the previous global reward
     
     std::ofstream evalFile;
     std::ofstream actFile;

@@ -9,7 +9,7 @@ using std::vector;
 using std::string;
 using namespace Eigen;
 
-int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vector<int> barPadding){
+int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vector<int> barPadding, bool dynamicLearning){
     std::cout << "Testing MultiNightBarQ class in MultiNightBarQ.h\n";
     
     size_t capacity = 10;
@@ -23,12 +23,13 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vect
     double epsilon = 0.01;
     double maxReward = 10; // set max reward to 10 since agents get D as reward
 
-    size_t nEps = 10000;
+    size_t nEps = 5000;
 
     // std::vector<int> barPadding = {};
 
     std::cout << "This program will use Q-learning to train " << numAgents << "-agent team over " << nEps << " learning epochs\n";
     std::cout << nAgentsDisabled << " Agents will be not be learning\n";
+    std::cout << "Dyanmic Training is set to " << dynamicLearning <<"\n";
     std::cout << "Agent Q-Learning parameters:\n";
     std::cout << "  Learning Rate: " << learningRate << "\n";
     std::cout << "  Discount: " << discount << "\n";
@@ -44,11 +45,12 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vect
     // std::cin >> trialNum;
     
     MultiNightBarQ trainDomain(numNights, capacity, barPadding, numAgents, evalFunc, 
-                                 learningRate, discount, epsilon, maxReward, nAgentsDisabled);
+                                 learningRate, discount, epsilon, maxReward, nAgentsDisabled, dynamicLearning);
     
     int buffSize = 100;
     char fileDir[buffSize];
-    sprintf(fileDir,"Results/MultiNightBarQ/%d_nights/%d_epochs/%d_agents/%d_disabled/%s/trial_%d",(int)numNights,(int)nEps, (int) numAgents, (int)nAgentsDisabled, evalFunc.c_str(),trialNum);
+    sprintf(fileDir,"Results/MultiNightBarQ/%s/%d_nights/%d_epochs/%d_agents/%d_disabled/%s/trial_%d",
+                (dynamicLearning ? "dynamic" : "static"), (int)numNights,(int)nEps, (int) numAgents, (int)nAgentsDisabled, evalFunc.c_str(), trialNum);
     char mkdir[buffSize];
     sprintf(mkdir,"mkdir -p %s",fileDir);
     system(mkdir);
@@ -151,7 +153,8 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vect
 
 int main(){
     size_t numTrials = 20;
-    std::vector<size_t> numAgentVariations = {50, 100, 150, 200};
+    bool dynamicLearning = true;
+    std::vector<size_t> numAgentVariations = {100, 150, 200};
     std::vector<int> barPadding = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     for (size_t k = 0; k < numAgentVariations.size(); ++k){
       size_t numAgents = numAgentVariations[k];
@@ -159,7 +162,7 @@ int main(){
             size_t numDisabled = i*10; 
             for (size_t j = 0; j < numTrials; ++j){
                 if (numAgents > numDisabled){
-                    runMultiTrials(numAgents, numDisabled, j, barPadding);
+                    runMultiTrials(numAgents, numDisabled, j, barPadding, dynamicLearning);
                 }
             }
       }

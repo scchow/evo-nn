@@ -9,6 +9,8 @@
 #include <vector>
 #include <math.h>
 #include <stdlib.h>
+#include <numeric> // used in sortIndices
+#include <algorithm> // used in sortIndices
 
 namespace easymath{
 // Returns a random number between two values
@@ -24,5 +26,9 @@ double sum(std::vector<double>) ;
 template <typename T>
 std::vector<T> getMaxIndices(std::vector<T> v);
 #include "GetMaxIndices.hpp"
+
+template <typename T>
+std::vector<size_t> sortIndices(const std::vector<T> &v);
+#include "SortIndices.hpp"
 
 #endif // UTILITIES_H_

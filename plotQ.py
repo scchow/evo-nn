@@ -4,13 +4,14 @@ import numpy as np
 import itertools
 
 def main():
-    epochs = 10000
+    epochs = 3000
     nights = 10
     capacity = 10
-    variations = [0, 10, 20, 50]
+    variations = [0, 10, 20, 50, 70, 90]
+    # variations = [0, 10, 20, 30, 40]
     numTrials = 5
     numAgents = 100
-    baseResultsPath = os.path.join("build", "Results", "MultiNightBarQ", str(nights)+"_nights", str(epochs)+"_epochs", str(numAgents) + "_agents")
+    baseResultsPath = os.path.join("build", "Results", "MultiNightBarQ","dynamic", str(nights)+"_nights", str(epochs)+"_epochs", str(numAgents) + "_agents")
 
     # variations = [0, 90, 50]
     paths = map(lambda x: os.path.join(baseResultsPath, str(x)+"_disabled", "D"), variations)
@@ -54,12 +55,13 @@ def main():
     markers = itertools.cycle(('o', 'v', 'x', 's', 'p', '^', '<', '>'))
     ax = plt.gca()
     i = 0
-    increment = 500
+    increment = 200
+    maxEpoch = 3000
     for key in variations:
         value = dataDict[key]
-        x_axis = value[:,0][::increment]
-        y_axis = value[:,1][::increment]
-        errors = value[:,2][::increment]
+        x_axis = value[:,0][:maxEpoch:increment]
+        y_axis = value[:,1][:maxEpoch:increment]
+        errors = value[:,2][:maxEpoch:increment]
         # color = next(ax._get_lines.color_cycle)
         # plt.errorbar(x_axis, y_axis, errors, linestyle='solid', marker=markers.next(), markerfacecolor=color, markeredgecolor=color, c=color, label=str(key), mew=5.0)
         plt.errorbar(x_axis, y_axis, errors, linestyle='solid', marker=markers.next(), label=str(key), mew=5.0)
@@ -73,6 +75,7 @@ def main():
     plt.title("Performance vs Number of Epochs for " + str(nights) + " Nights of " + str(capacity) + " Capacity with " + str(numAgents) + " Agents")
     plt.xlabel("Number of Epochs")
     plt.ylabel("Performance (max 100)")
+    # plt.ylim([0,110])
     ax.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5), title="Number of Agents Not Learning")
     plt.show()  
 
