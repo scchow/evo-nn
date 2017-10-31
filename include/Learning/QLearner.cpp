@@ -101,6 +101,12 @@ void QLearner::updateQ(double reward, size_t nextState){
     
     // only updateQ if agent is learning
     if (train){
+        for (size_t i = 0; i < Q.size(); ++i){
+            for (size_t j = 0; j < Q[i].size(); ++j){
+                std::cout << Q[i][j] << ",";
+            }
+            std::cout << "\n\n\n\n";
+        }
 
         double maxValueNextState = *std::max_element( Q[nextState].begin(), Q[nextState].end() );
         
@@ -111,6 +117,13 @@ void QLearner::updateQ(double reward, size_t nextState){
 
         // Compute change in policy for future impact computation
         deltaQ = abs(dQ);
+
+        for (size_t i = 0; i < Q.size(); ++i){
+            for (size_t j = 0; j < Q[i].size(); ++j){
+                std::cout << Q[i][j] << ",";
+            }
+            std::cout << "\n\n\n\n\n\n";
+        }
     
     // Update state to next state
     prevState = currState;

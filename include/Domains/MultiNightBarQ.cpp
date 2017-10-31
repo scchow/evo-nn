@@ -126,7 +126,7 @@ double MultiNightBarQ::simulateEpoch(bool train){
 
         // get impact of each agent
         for (size_t i = 0; i < numAgents; ++i){
-            impacts.push_back(agents[i]->computeImpact(deltaG));
+            impacts.push_back(agents[i]->computeImpact(abs(deltaG)));
         }
 
         std::vector<size_t> sortedIndices = sortIndices(impacts);
