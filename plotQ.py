@@ -4,14 +4,18 @@ import numpy as np
 import itertools
 
 def main():
-    epochs = 3000
+    epochs = 5000
     nights = 10
     capacity = 10
-    variations = [0, 10, 20, 50, 70, 90]
+    variations = [0, 10, 20, 30, 50, 70, 100, 120, 140, 160, 190]
     # variations = [0, 10, 20, 30, 40]
-    numTrials = 5
-    numAgents = 100
+    numTrials = 20
+    numAgents = 200
+    adaptive = 1
     baseResultsPath = os.path.join("build", "Results", "MultiNightBarQ","dynamic", str(nights)+"_nights", str(epochs)+"_epochs", str(numAgents) + "_agents")
+
+    # baseResultsPath = os.path.join("build", "Results_10-25", "MultiNightBarQ", "10_nights", "10000_epochs", str(numAgents) + "_agents")
+
 
     # variations = [0, 90, 50]
     paths = map(lambda x: os.path.join(baseResultsPath, str(x)+"_disabled", "D"), variations)
@@ -71,8 +75,10 @@ def main():
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 
+
+
     plt.yticks(range(0,100,10))
-    plt.title("Performance vs Number of Epochs for " + str(nights) + " Nights of " + str(capacity) + " Capacity with " + str(numAgents) + " Agents")
+    plt.title("Performance vs Number of Epochs for " + str(nights) + " Nights of " + str(capacity) + " Capacity with " + str(numAgents) + (" adaptive" if adaptive else " non-adaptive") + " Agents")
     plt.xlabel("Number of Epochs")
     plt.ylabel("Performance (max 100)")
     # plt.ylim([0,110])

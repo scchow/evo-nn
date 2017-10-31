@@ -101,12 +101,12 @@ void QLearner::updateQ(double reward, size_t nextState){
     
     // only updateQ if agent is learning
     if (train){
-        for (size_t i = 0; i < Q.size(); ++i){
-            for (size_t j = 0; j < Q[i].size(); ++j){
-                std::cout << Q[i][j] << ",";
-            }
-            std::cout << "\n\n\n\n";
-        }
+        // for (size_t i = 0; i < Q.size(); ++i){
+        //     for (size_t j = 0; j < Q[i].size(); ++j){
+        //         std::cout << Q[i][j] << ",";
+        //     }
+        //     std::cout << "\n";
+        // }
 
         double maxValueNextState = *std::max_element( Q[nextState].begin(), Q[nextState].end() );
         
@@ -116,14 +116,16 @@ void QLearner::updateQ(double reward, size_t nextState){
         Q[currState][currAction] = Q[currState][currAction] + dQ;
 
         // Compute change in policy for future impact computation
-        deltaQ = abs(dQ);
+        deltaQ = std::abs(dQ);
 
-        for (size_t i = 0; i < Q.size(); ++i){
-            for (size_t j = 0; j < Q[i].size(); ++j){
-                std::cout << Q[i][j] << ",";
-            }
-            std::cout << "\n\n\n\n\n\n";
-        }
+        // for (size_t i = 0; i < Q.size(); ++i){
+        //     for (size_t j = 0; j < Q[i].size(); ++j){
+        //         std::cout << Q[i][j] << ",";
+        //     }
+        //     std::cout << "\n";
+        // }
+
+        // std::cout << "dq: " << deltaQ << "\n" << std::endl;
     
     // Update state to next state
     prevState = currState;

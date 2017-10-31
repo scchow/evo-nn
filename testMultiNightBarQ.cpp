@@ -154,7 +154,7 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vect
 int main(){
     size_t numTrials = 20;
     bool dynamicLearning = true;
-    std::vector<size_t> numAgentVariations = {100, 150, 200};
+    std::vector<size_t> numAgentVariations = {100, 150, 200, 50};
     std::vector<int> barPadding = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     for (size_t k = 0; k < numAgentVariations.size(); ++k){
       size_t numAgents = numAgentVariations[k];
