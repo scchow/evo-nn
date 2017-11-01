@@ -10,13 +10,11 @@ using std::vector;
 using std::string;
 using namespace Eigen;
 
-int runMultiTrials(char* timeStr, size_t numAgents, size_t numDisabled, int trialNum, std::vector<int> barPadding, int adaptiveLearning, size_t maxEpoch){
+int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int trialNum, std::vector<int> barPadding, int adaptiveLearning, size_t maxEpoch){
     std::cout << "Testing MultiNightBarQ class in MultiNightBarQ.h\n";
     
     size_t capacity = 10;
     size_t numNights = 10;
-    // size_t numAgents = 100;
-    size_t nAgentsDisabled = numDisabled;
     string evalFunc = "D";
 
     double learningRate = 0.1;
@@ -50,15 +48,15 @@ int runMultiTrials(char* timeStr, size_t numAgents, size_t numDisabled, int tria
 
     int buffSize = 100;
     char fileDir[buffSize];
-    sprintf(fileDir,"Results/%s/MultiNightBarQ/%s/%d_nights/%d_epochs/%d_agents/%d_disabled/%s/trial_%d",
+    sprintf(fileDir,"Results/%s/MultiNightBarQ/%s/%d_agents-%d_disabled/trial_%d",
                 timeStr, 
-                 (adaptiveLearning==1 ? "adaptive_max" : (adaptiveLearning==2 ? "adaptive_softmax" :"static")), 
-                (int)numNights,
-                (int)nEps, 
+                (adaptiveLearning==1 ? "adaptive_max" : (adaptiveLearning==2 ? "adaptive_softmax" :"static")), 
                 (int)numAgents,
                 (int)nAgentsDisabled,
-                evalFunc.c_str(),
-                trialNum);
+                trialNum
+                );
+
+    // sprintf(fileDir, "Results/a");
 
     char mkdir[buffSize];
     sprintf(mkdir,"mkdir -p %s",fileDir);
