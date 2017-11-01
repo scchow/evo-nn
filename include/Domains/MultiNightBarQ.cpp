@@ -2,9 +2,10 @@
 
 MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::string evalFunc, 
                                double lr, double discount, double probRandom, double maxReward, 
-                               size_t nAgentsDisabled, bool dLearning): 
+                               size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch): 
                                numNights(nNights), capacity(cap), numAgents(nAgents), 
-                               numAgentsDisabled(nAgentsDisabled), dynamicLearning(dLearning){
+                               numAgentsDisabled(nAgentsDisabled), adaptive(adaptiveLearning),
+                               maxEpoch(mEpoch){
 
     size_t numStates = 1; // single state problem
     size_t numActions = nNights; // each agent can choose which night to go on
@@ -39,10 +40,11 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::
 }
 
 MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barOccupancyPad, size_t nAgents, std::string evalFunc, 
-                               double lr, double discount, double probRandom, double maxReward, size_t nAgentsDisabled, bool dLearning): 
+                               double lr, double discount, double probRandom, double maxReward, size_t nAgentsDisabled, 
+                               int adaptiveLearning, size_t mEpoch): 
                                numNights(nNights), capacity(cap), numAgents(nAgents), 
-                               numAgentsDisabled(nAgentsDisabled), dynamicLearning(dLearning),
-                               barOccupancyPadding(barOccupancyPad){
+                               numAgentsDisabled(nAgentsDisabled), adaptive(adaptiveLearning),
+                               maxEpoch(mEpoch), barOccupancyPadding(barOccupancyPad){
 
     size_t numStates = 1; // single state problem
     size_t numActions = nNights; // each agent can choose which night to go on
@@ -96,7 +98,7 @@ double MultiNightBarQ::computeG(std::vector<size_t> occupancy){
     return G;
 }
 
-double MultiNightBarQ::simulateEpoch(bool train){
+double MultiNightBarQ::simulateEpoch(size_t epochNumber){
     // std::cout << "began simulateEpoch " << "\n";
     // Get actions from each agent and
     // keep track of how many went to each night
@@ -119,8 +121,8 @@ double MultiNightBarQ::simulateEpoch(bool train){
 
     // Choose agents to disable
     // Note, disable agents after updating so that they get updated first
-    std::vector<bool> newLearningStates(numAgents, 1);
-    if (dynamicLearning){
+    std::vector<bool> newLearningStates(numAgents, 0);
+    if (adaptive){
         double deltaG = G - prevG;
         std::vector<double> impacts;
 
@@ -129,12 +131,28 @@ double MultiNightBarQ::simulateEpoch(bool train){
             impacts.push_back(agents[i]->computeImpact(deltaG));
         }
 
+        // list of agents from least to most impactful
         std::vector<size_t> sortedIndices = sortIndices(impacts);
         // size_t numLearningAgents = numAgents - numAgentsDisabled;
 
-        // select the most impactful quarter of agents to continue training
-        for (size_t i = 0; i < numAgentsDisabled; ++i){
-            newLearningStates[sortedIndices[i]] = false;
+        if (adaptive == 1){
+            // select the most impactful quarter of agents to continue training
+            for (size_t i = numAgentsDisabled; i < numAgents; ++i){
+                newLearningStates[sortedIndices[i]] = true;
+            }
+        }
+
+        else if (adaptive == 2){
+            int numLearning = 0;
+            for (size_t i = 0; i < numAgents; ++i){
+                double prob = 1- std::exp(-1 * impacts[i] / MultiNightBarQ::temperature(epochNumber));
+                double rand = distReal(generator);
+                if (prob < rand){
+                    newLearningStates[i] = true;
+                    numLearning += 1;
+                }
+            }
+            std::cout << "number agents learning = " << numLearning << std::endl;
         }
 
         std::cout << "Impact Vector: ";
@@ -182,7 +200,7 @@ double MultiNightBarQ::simulateEpoch(bool train){
     }
 
     // disable agents here
-    if (dynamicLearning){
+    if (adaptive){
         for (size_t i = 0; i < numAgents; ++i){
             // Pass G as reward and remain at state 0
             agents[i]->setLearningFlag(newLearningStates[i]);
@@ -298,3 +316,8 @@ void MultiNightBarQ::outputAgentActions(char* fname){
     actionFile.close();
 }
 
+double MultiNightBarQ::temperature(size_t epochNumber){
+    // try a linear temperature function for now
+    return epochNumber/maxEpoch;
+
+}

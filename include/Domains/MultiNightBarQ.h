@@ -18,11 +18,11 @@ class MultiNightBarQ{
   public:
     MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::string evalFunc, 
                    double lr, double discountFactor, double probRandom, double maxReward,
-                   size_t nAgentsDisabled, bool dLearning);
+                   size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch);
 
     MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barOccupancyPad, size_t nAgents, std::string evalFunc, 
                    double lr, double discountFactor, double probRandom, double maxReward,
-                   size_t nAgentsDisabled, bool dLearning);
+                   size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch);
 
     ~MultiNightBarQ();
     
@@ -36,11 +36,10 @@ class MultiNightBarQ{
     /**
      * SimulateEpoch()
      * 
-     * \brief Runs an epoch of Q-Learning, update agent Q values if train is set to true
-     *        Returns G for the epoch simulated
+     * \brief Runs an epoch of Q-Learning, update agent Q values 
      *
      */
-    double simulateEpoch(bool train = true);
+    double simulateEpoch(size_t epochNumber);
 
     /**
      * computeG()
@@ -103,7 +102,7 @@ class MultiNightBarQ{
      */
     void outputAgentActions(char* fname);    
 
-
+    double temperature(size_t epochNumber);
 
   private:
     size_t numNights;
@@ -119,7 +118,12 @@ class MultiNightBarQ{
     bool outputActs;
 
     bool useD;
-    bool dynamicLearning;
+
+    /// flag to use adaptive learning
+    /// 0 - no adaptive learning
+    /// 1 - adaptive learning using fixed max
+    /// 2 - adaptive lerning using softmax temperature
+    int adaptive;
 
     double prevG; /// the previous global reward
     
@@ -131,8 +135,14 @@ class MultiNightBarQ{
     double learningRate; /// learning rate (alpha)
     double discountFactor; /// discount factor (gamma)
     double epsilon; /// chance of selecting random action
+
+    size_t maxEpoch; /// the final epoch number simulated (used for temperature calculations)
     
     std::vector<int> barOccupancyPadding; // for each bar, how much should the occupancy be padded
+
+    std::random_device rd; /// Seed Generator
+    std::mt19937_64 generator{rd()}; /// generator initialized with seed from rd
+    std::uniform_real_distribution<> distReal{0.0, 1.0}; /// Random number distribution from 0 to 1
 };
 
 #endif // MULTI_NIGHT_BAR_Q_H_
