@@ -12,6 +12,7 @@ QLearner::QLearner(double lr, double discount, double probRandom, double maxRewa
     currState = initState;
     prevState = initState; // initialize prevState to current state to prevent errors
     deltaQ = 1; // let deltaQ be 1 in case computeImpact is called b
+    prevImpact = INFINITY;
 
     train = true;
 
@@ -154,5 +155,12 @@ bool QLearner::isLearning(){
 }
 
 double QLearner::computeImpact(double deltaG){
-    return deltaG/deltaQ;
+    // If not training return last calculated impact
+    if (!train){
+        return prevImpact;
+    }
+
+    // else actually compute new impact
+    prevImpact = deltaG/deltaQ;
+    return prevImpact;
 }

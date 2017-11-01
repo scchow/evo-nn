@@ -110,6 +110,8 @@ class QLearner{
         std::mt19937_64 generator{rd()}; /// generator initialized with seed from rd
         std::uniform_real_distribution<> distReal{0.0, 1.0}; /// Random number distribution from 0 to 1
         std::uniform_int_distribution<> distInt{0, 2}; /// Random int distribution (to be overwritten upon actual init)
+
+        double prevImpact; /// Remember previous impact when not learning
 };
 
 #endif // QLEARNER_H_

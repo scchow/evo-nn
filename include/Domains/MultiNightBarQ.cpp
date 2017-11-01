@@ -146,8 +146,9 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
             int numLearning = 0;
             for (size_t i = 0; i < numAgents; ++i){
                 double prob = 1- std::exp(-1 * impacts[i] / MultiNightBarQ::temperature(epochNumber));
+                // std::cout << "prob = " << prob << std::endl;
                 double rand = distReal(generator);
-                if (prob < rand){
+                if (rand < prob){
                     newLearningStates[i] = true;
                     numLearning += 1;
                 }
@@ -318,6 +319,7 @@ void MultiNightBarQ::outputAgentActions(char* fname){
 
 double MultiNightBarQ::temperature(size_t epochNumber){
     // try a linear temperature function for now
+    // std::cout << "temperature = " << 100 * epochNumber/maxEpoch << std::endl;
     return epochNumber/maxEpoch;
 
 }

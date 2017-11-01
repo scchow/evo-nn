@@ -154,7 +154,7 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vect
 int main(){
     size_t numTrials = 20;
     size_t maxEpoch = 5000;
-    int adaptiveLearning = 2;
+    int adaptiveLearning = 1;
     std::vector<size_t> numAgentVariations = {100, 150, 200, 50};
     std::vector<int> barPadding = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     for (size_t k = 0; k < numAgentVariations.size(); ++k){
