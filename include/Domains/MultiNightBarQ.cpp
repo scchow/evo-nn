@@ -144,13 +144,21 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
 
         else if (adaptive == 2){
             int numLearning = 0;
+            double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
+            std::vector<double> softmax;
+            double total = 0;
             for (size_t i = 0; i < numAgents; ++i){
-                double prob = 1- std::exp(-1 * impacts[i] / MultiNightBarQ::temperature(epochNumber));
-                // std::cout << "prob = " << prob << std::endl;
+                double sigmoid = 1 - std::exp(impacts[i] * negInvTemp);
+                total += sigmoid;
+                softmax.push_back(sigmoid);
+            }
+
+            for (size_t i = 0; i < numAgents; ++i){
                 double rand = distReal(generator);
+                double prob = softmax[i]/total;
+                std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
                 if (rand < prob){
                     newLearningStates[i] = true;
-                    numLearning += 1;
                 }
             }
             std::cout << "number agents learning = " << numLearning << std::endl;
@@ -319,7 +327,7 @@ void MultiNightBarQ::outputAgentActions(char* fname){
 
 double MultiNightBarQ::temperature(size_t epochNumber){
     // try a linear temperature function for now
-    // std::cout << "temperature = " << 100 * epochNumber/maxEpoch << std::endl;
-    return epochNumber/maxEpoch;
+    std::cout << "temperature = " << 1- (double)epochNumber/(double)maxEpoch << std::endl;
+    return 1- (double)epochNumber / (double)maxEpoch;
 
 }

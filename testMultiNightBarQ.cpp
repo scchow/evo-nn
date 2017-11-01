@@ -10,7 +10,7 @@ using std::vector;
 using std::string;
 using namespace Eigen;
 
-int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vector<int> barPadding, int adaptiveLearning, size_t maxEpoch){
+int runMultiTrials(char* timeStr, size_t numAgents, size_t numDisabled, int trialNum, std::vector<int> barPadding, int adaptiveLearning, size_t maxEpoch){
     std::cout << "Testing MultiNightBarQ class in MultiNightBarQ.h\n";
     
     size_t capacity = 10;
@@ -47,16 +47,6 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vect
     
     MultiNightBarQ trainDomain(numNights, capacity, barPadding, numAgents, evalFunc, 
                                  learningRate, discount, epsilon, maxReward, nAgentsDisabled, adaptiveLearning, maxEpoch);
-    
-    // Get timestamp
-    time_t rawtime;
-    struct tm * timeinfo;
-    char timeStr[80];
-
-    time (&rawtime);
-    timeinfo = localtime(&rawtime);
-
-    strftime(timeStr,sizeof(timeStr),"%Y-%m-%d_%I:%M:%S", timeinfo);
 
     int buffSize = 100;
     char fileDir[buffSize];
@@ -172,21 +162,41 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vect
 
 int main(){
     size_t numTrials = 20;
-    size_t maxEpoch = 5000;
-    int adaptiveLearning = 1;
+    size_t maxEpoch = 3000;
+    int adaptiveLearning = 2;
     std::vector<size_t> numAgentVariations = {100, 150, 200, 50};
+
     std::vector<int> barPadding = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    // Get timestamp
+    time_t rawtime;
+    struct tm * timeinfo;
+    char timeStr[80];
+
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(timeStr,sizeof(timeStr),"%Y-%m-%d_%H-%M-%S", timeinfo);
+
     for (size_t k = 0; k < numAgentVariations.size(); ++k){
       size_t numAgents = numAgentVariations[k];
-      for (size_t i = 0; i < 20; ++i){
+      // If using softmax, specifying number of agents to not learn doesn't matter
+      if (adaptiveLearning == 2){
+        for (size_t j = 0; j < numTrials; ++j){
+            runMultiTrials(timeStr, numAgents, 0, j, barPadding, adaptiveLearning, maxEpoch);
+        }
+      }
+      else{
+        for (size_t i = 0; i < 20; ++i){
             size_t numDisabled = i*10; 
             for (size_t j = 0; j < numTrials; ++j){
                 if (numAgents > numDisabled){
-                    runMultiTrials(numAgents, numDisabled, j, barPadding, adaptiveLearning, maxEpoch);
+                    runMultiTrials(timeStr, numAgents, numDisabled, j, barPadding, adaptiveLearning, maxEpoch);
                 }
             }
-      }
+        }
     }
+}
 
 
 ////Testing with padding
