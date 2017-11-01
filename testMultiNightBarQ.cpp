@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <Eigen/Eigen>
+#include <ctime>
 
 #include "Domains/MultiNightBarQ.h"
 
@@ -47,10 +48,28 @@ int runMultiTrials(size_t numAgents, size_t numDisabled, int trialNum, std::vect
     MultiNightBarQ trainDomain(numNights, capacity, barPadding, numAgents, evalFunc, 
                                  learningRate, discount, epsilon, maxReward, nAgentsDisabled, adaptiveLearning, maxEpoch);
     
+    // Get timestamp
+    time_t rawtime;
+    struct tm * timeinfo;
+    char timeStr[80];
+
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(timeStr,sizeof(timeStr),"%Y-%m-%d_%I:%M:%S", timeinfo);
+
     int buffSize = 100;
     char fileDir[buffSize];
-    sprintf(fileDir,"Results/MultiNightBarQ/%s/%d_nights/%d_epochs/%d_agents/%d_disabled/%s/trial_%d",
-                (adaptiveLearning==1 ? "adaptive_max" : (adaptiveLearning==2 ? "adaptive_softmax" :"static")), (int)numNights,(int)nEps, (int) numAgents, (int)nAgentsDisabled, evalFunc.c_str(), trialNum);
+    sprintf(fileDir,"Results/%s/MultiNightBarQ/%s/%d_nights/%d_epochs/%d_agents/%d_disabled/%s/trial_%d",
+                timeStr, 
+                 (adaptiveLearning==1 ? "adaptive_max" : (adaptiveLearning==2 ? "adaptive_softmax" :"static")), 
+                (int)numNights,
+                (int)nEps, 
+                (int)numAgents,
+                (int)nAgentsDisabled,
+                evalFunc.c_str(),
+                trialNum);
+
     char mkdir[buffSize];
     sprintf(mkdir,"mkdir -p %s",fileDir);
     system(mkdir);
