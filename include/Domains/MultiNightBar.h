@@ -41,6 +41,7 @@ class MultiNightBar{
     size_t nPop ;
     string evaluationFunction ;
     size_t nAgents ;
+    size_t numLearning;
     
     vector<BarAgent *> agentTeam ;
     vector<Bar> barNights ;
@@ -52,6 +53,7 @@ class MultiNightBar{
     std::ofstream actFile ;
     std::ofstream barFile ;
     std::ofstream NNFile ;
+    std::ofstream numLearningFile;
     
     vector< vector<size_t> > RandomiseTeams(size_t) ;
 } ;

@@ -7,6 +7,7 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::
                                numAgentsDisabled(nAgentsDisabled), adaptive(adaptiveLearning),
                                maxEpoch(mEpoch){
 
+    numAgentsLearning = nAgents - numAgentsDisabled;
     size_t numStates = 1; // single state problem
     size_t numActions = nNights; // each agent can choose which night to go on
     size_t initState = 0; // all agents start with the only state they can be on
@@ -79,6 +80,9 @@ MultiNightBarQ::~MultiNightBarQ(){
         delete agents[i];
         agents[i] = nullptr;
     }
+    if (barFile.is_open()){
+        barFile.close();
+    }
 }
 
 void MultiNightBarQ::initialiseEpoch(){
@@ -145,39 +149,43 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
         }
 
         else if (adaptive == 2){
-            int numLearning = 0;
+            numAgentsLearning = 0;
             for (size_t i = 0; i < numAgents; ++i){
                 double prob = impacts[i]/totalImpact;
                 double rand = distReal(generator);
                 if (rand < prob){
                     newLearningStates[i] = true;
-                    numLearning += 1;
+                    numAgentsLearning += 1;
                 }
             }
-            std::cout << "Number Agents Learning" << std::endl;
-        /*
-            int numLearning = 0;
+            numAgentsDisabled = numAgents - numAgentsLearning;
+
+            std::cout << "Number Agents Learning" << numAgentsLearning << std::endl;
+        }
+
+        else if (adaptive == 3){
+        
+            numAgentsLearning = 0;
             double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
             std::vector<double> softmax;
             double total = 0;
             for (size_t i = 0; i < numAgents; ++i){
-                double sigmoid = 1 - std::exp(impacts[i] * negInvTemp);
-                total += sigmoid;
-                softmax.push_back(sigmoid);
-            }
-
-            for (size_t i = 0; i < numAgents; ++i){
+                double prob = 1 - std::exp(impacts[i] * negInvTemp);
                 double rand = distReal(generator);
-                double prob = softmax[i]/total;
                 std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
                 if (rand < prob){
                     newLearningStates[i] = true;
+                    numAgentsLearning += 1;
                 }
-            }
-            std::cout << "number agents learning = " << numLearning << std::endl;
-                    std::cout << "softmax Vector: ";
-        */
+                softmax.push_back(prob);
 
+            }
+            std::cout << "number agents learning = " << numAgentsLearning << std::endl;
+            std::cout << "softmax Vector: ";
+            for (size_t i = 0; i < impacts.size(); ++i){ // compute reward for each night and sum
+                std::cout << softmax[i] << "," ;
+            }
+            std::cout << "\n";
 
             std::cout << "Impact Vector: ";
             for (size_t i = 0; i < impacts.size(); ++i){ // compute reward for each night and sum
@@ -296,6 +304,17 @@ void MultiNightBarQ::outputActions(char* B, std::vector<size_t> barOccupancy){
     }
 }
 
+void MultiNightBarQ::outputNumLearning(char* fname, size_t numEpochs){
+    std::stringstream fnameStream;
+    fnameStream << fname;
+    if (numLearningFile.is_open()){
+        numLearningFile.close();
+    }
+
+    numLearningFile.open(fname, std::ios::app);
+    numLearningFile << numEpochs << ", " << numAgentsLearning << "\n";
+}
+
 // Wrapper for writing final control policies to specified file
 void MultiNightBarQ::outputQTables(char* A){
     for (size_t i = 0; i < numAgents; i++)
@@ -342,7 +361,8 @@ void MultiNightBarQ::outputAgentActions(char* fname){
 
 double MultiNightBarQ::temperature(size_t epochNumber){
     // try a linear temperature function for now
-    std::cout << "temperature = " << 1- (double)epochNumber/(double)maxEpoch << std::endl;
-    return 1- (double)epochNumber / (double)maxEpoch;
+    // std::cout << "temperature = " << 1- (double)epochNumber/(double)maxEpoch << std::endl;
+    // return 1- (double)epochNumber / (double)maxEpoch;
+    return 250;
 
 }

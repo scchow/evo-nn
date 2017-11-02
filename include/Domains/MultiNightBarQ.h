@@ -79,6 +79,9 @@ class MultiNightBarQ{
      */   
     void outputActions(char* B, std::vector<size_t> barOccupancy);
 
+    void outputNumLearning(char* fname, size_t numEpochs);
+
+
     /**
      * outputQTables()
      * 
@@ -110,6 +113,7 @@ class MultiNightBarQ{
     std::string evaluationFunction;
     size_t numAgents;
     size_t numAgentsDisabled;
+    size_t numAgentsLearning;
     
     vector<Bar> barNights;
     vector<QLearner *> agents;
@@ -131,6 +135,7 @@ class MultiNightBarQ{
     std::ofstream actFile;
     std::ofstream barFile;
     std::ofstream QTableFile;
+    std::ofstream numLearningFile;
 
     double learningRate; /// learning rate (alpha)
     double discountFactor; /// discount factor (gamma)
