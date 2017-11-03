@@ -50,13 +50,14 @@ int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int 
     int buffSize = 500;
     char fileDir[buffSize];
 
-    sprintf(fileDir,"Results/%s/MultiNightBarQ/%s%s/%d_agents-%d_disabled/trial_%d",
+    sprintf(fileDir,"Results/%s/MultiNightBarQ/%s%s/%d_agents/%d_disabled/trial_%d",
             timeStr, 
             adaptiveLearning == 0 ? "non-adaptive" : 
-                (adaptiveLearning==1 ? "adaptive_max_fixed" :
-                (adaptiveLearning==2 ? "adaptive_max" : 
-                (adaptiveLearning==3 ? "adaptive_softmax/temp_" : "unknown"))),
-            adaptiveLearning == 3 ? std::to_string(temp).c_str() : "",
+                (adaptiveLearning==1 ? "adaptive_max_n" :
+                (adaptiveLearning==2 ? "adaptive_max_centralized" : 
+                (adaptiveLearning==3 ? "adaptive_softmax/temp_" : 
+                (adaptiveLearning==4 ? "adaptive_softmax_D/temp_" : "unknown")))),
+            adaptiveLearning >=3 ? std::to_string((int)temp).c_str() : "",
             (int)numAgents,
             (int)nAgentsDisabled,
             trialNum
@@ -168,11 +169,19 @@ int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int 
 int main(){
     size_t numTrials = 20;
     size_t maxEpoch = 3000;
-    int adaptiveLearning = 3;
-    std::vector<size_t> numAgentVariations = {100};
+    int adaptiveLearning;
+    std::vector<size_t> numAgentVariations = {200,50,150};
 
     std::vector<int> barPadding = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     std::vector<double> temps = {10, 50, 100, 500, 1000, 5000, 10000};
+
+    // Adaptive Learning types
+    // 0 - No Learning
+    // 1 - Select Max n agents
+    // 2 - Centralized Max - Probabality = Largest Normalize by largest Impact
+    // 3 - SoftMax with dG/dpi as impact
+    // 4 - SoftMax with dD as impact
+    std::vector<int> adaptiveLearningSchemes = {3,0,2,1};
 
     // Get timestamp
     time_t rawtime;
@@ -184,28 +193,32 @@ int main(){
 
     strftime(timeStr,sizeof(timeStr),"%Y-%m-%d_%H-%M-%S", timeinfo);
 
-    for (size_t k = 0; k < numAgentVariations.size(); ++k){
-        size_t numAgents = numAgentVariations[k];
-        // If using softmax, specifying number of agents to not learn doesn't matter
+    for (size_t schemeInd = 0; schemeInd < adaptiveLearningSchemes.size(); ++schemeInd){
+        adaptiveLearning = adaptiveLearningSchemes[schemeInd];
+        for (size_t k = 0; k < numAgentVariations.size(); ++k){
+            size_t numAgents = numAgentVariations[k];
+            // If using softmax, specifying number of agents to not learn doesn't matter
 
-        if (adaptiveLearning == 0)
-            for (size_t i = 0; i < 20; ++i){
-            size_t numDisabled = i*10; 
-            for (size_t j = 0; j < numTrials; ++j){
-                if (numAgents > numDisabled){
-                    runMultiTrials(timeStr, numAgents, numDisabled, j, barPadding, adaptiveLearning, maxEpoch, 0);
+            if (adaptiveLearning == 0)
+                for (size_t i = 0; i < 20; ++i){
+                size_t numDisabled = i*10; 
+                for (size_t j = 0; j < numTrials; ++j){
+                    if (numAgents > numDisabled){
+                        runMultiTrials(timeStr, numAgents, numDisabled, j, barPadding, adaptiveLearning, maxEpoch, 0);
+                    }
                 }
             }
-        }
-        else{
-            for (size_t t = 0; t < temps.size(); ++t){
-                double temp = temps[t];
-                for (size_t j = 0; j < numTrials; ++j){
-                    runMultiTrials(timeStr, numAgents, 0, j, barPadding, adaptiveLearning, maxEpoch, temp);
+            else{
+                for (size_t t = 0; t < temps.size(); ++t){
+                    double temp = temps[t];
+                    for (size_t j = 0; j < numTrials; ++j){
+                        runMultiTrials(timeStr, numAgents, 0, j, barPadding, adaptiveLearning, maxEpoch, temp);
+                    }
                 }
             }
         }
     }
+    
 }
 
 

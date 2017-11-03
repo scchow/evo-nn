@@ -81,7 +81,6 @@ class MultiNightBarQ{
 
     void outputNumLearning(char* fname, size_t numEpochs);
 
-
     /**
      * outputQTables()
      * 
@@ -130,7 +129,8 @@ class MultiNightBarQ{
     int adaptive;
 
     double prevG; /// the previous global reward
-    double temp;
+    std::vector<double> prevD; /// the previous D rewards for each agent
+
     
     std::ofstream evalFile;
     std::ofstream actFile;
@@ -138,10 +138,11 @@ class MultiNightBarQ{
     std::ofstream QTableFile;
     std::ofstream numLearningFile;
 
-    double learningRate; /// learning rate (alpha)
     double discountFactor; /// discount factor (gamma)
+    double learningRate; /// learning rate (alpha)
     double epsilon; /// chance of selecting random action
 
+    double temp;
     size_t maxEpoch; /// the final epoch number simulated (used for temperature calculations)
     
     std::vector<int> barOccupancyPadding; // for each bar, how much should the occupancy be padded

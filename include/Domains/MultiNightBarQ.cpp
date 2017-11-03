@@ -4,7 +4,8 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::
                                double lr, double discount, double probRandom, double maxReward, 
                                size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch, double temperature): 
                                numNights(nNights), capacity(cap), numAgents(nAgents), 
-                               numAgentsDisabled(nAgentsDisabled), adaptive(adaptiveLearning),
+                               numAgentsDisabled(nAgentsDisabled), adaptive(adaptiveLearning), 
+                               discountFactor(discount), learningRate(lr), epsilon(probRandom),
                                temp(temperature), maxEpoch(mEpoch){
 
     numAgentsLearning = nAgents - numAgentsDisabled;
@@ -20,6 +21,9 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::
             newAgent->setLearningFlag(false);
         }
         agents.push_back(newAgent);
+
+        //push a 0 to prevD
+        prevD.push_back(0);
     }
 
     // Determine Evaluation Function to use
@@ -45,6 +49,7 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barO
                                int adaptiveLearning, size_t mEpoch, double temperature): 
                                numNights(nNights), capacity(cap), numAgents(nAgents), 
                                numAgentsDisabled(nAgentsDisabled), adaptive(adaptiveLearning),
+                               discountFactor(discount), learningRate(lr), epsilon(probRandom),
                                temp(temperature), maxEpoch(mEpoch), barOccupancyPadding(barOccupancyPad){
 
     size_t numStates = 1; // single state problem
@@ -59,6 +64,9 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barO
             newAgent->setLearningFlag(false);
         }
         agents.push_back(newAgent);
+
+        //push a 0 to prevD
+        prevD.push_back(0);
     }
 
     // Determine Evaluation Function to use
@@ -123,10 +131,27 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
     // Compute G
     double G = MultiNightBarQ::computeG(barOccupancy);
 
+    //Compute D
+    std::vector<double> D_vec;
+
+    for (size_t i = 0; i < numAgents; ++i){
+        int agentAction = agents[i]->getCurrentAction();
+
+        // Remove agent from bar
+        barOccupancy[agentAction]--;
+
+        double G_hat = MultiNightBarQ::computeG(barOccupancy);
+
+        D_vec.push_back(G-G_hat);
+
+        // Add agent back into bar
+        barOccupancy[agentAction]++;
+    }
+
     // Choose agents to disable
     // Note, disable agents after updating so that they get updated first
     std::vector<bool> newLearningStates(numAgents, 0);
-    if (adaptive){
+    if (adaptive > 0 and adaptive < 4){
         double deltaG = G - prevG;
         std::vector<double> impacts;
         double totalImpact = 0;
@@ -180,49 +205,59 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
 
             }
             std::cout << "number agents learning = " << numAgentsLearning << std::endl;
-            std::cout << "softmax Vector: ";
-            for (size_t i = 0; i < impacts.size(); ++i){ // compute reward for each night and sum
+            std::cout << "Probs of Learning Vector: ";
+            for (size_t i = 0; i < impacts.size(); ++i){ 
                 std::cout << softmax[i] << "," ;
             }
             std::cout << "\n";
 
             std::cout << "Impact Vector: ";
-            for (size_t i = 0; i < impacts.size(); ++i){ // compute reward for each night and sum
+            for (size_t i = 0; i < impacts.size(); ++i){ 
                 std::cout << impacts[i] << "," ;
             }
             std::cout << "\n";
-
         }
     }
-
-    if (useD){
-        //Compute D
-        std::vector<double> D_vec;
-
+    else if (adaptive == 4){
+        numAgentsLearning = 0;
+        double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
+        std::vector<double> deltaDs;
+        std::vector<double> softmax;
         for (size_t i = 0; i < numAgents; ++i){
-            int agentAction = agents[i]->getCurrentAction();
-
-            // Remove agent from bar
-            barOccupancy[agentAction]--;
-
-            double G_hat = MultiNightBarQ::computeG(barOccupancy);
-
-            D_vec.push_back(G-G_hat);
-
-            // Add agent back into bar
-            barOccupancy[agentAction]++;
+            double deltaD = std::abs(std::abs(D_vec[i]) - std::abs(prevD[i]));
+            deltaDs.push_back(deltaD);
+            double prob = 1 - std::exp(deltaD * negInvTemp);
+            double rand = distReal(generator);
+            std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
+            if (rand < prob){
+                newLearningStates[i] = true;
+                numAgentsLearning += 1;
+            }
+            softmax.push_back(prob);
         }
+        std::cout << "number agents learning = " << numAgentsLearning << std::endl;
+        std::cout << "Probs of Learning Vector: ";
+        for (size_t i = 0; i < softmax.size(); ++i){ 
+            std::cout << softmax[i] << "," ;
+        }
+        std::cout << "\n";
+        std::cout << "delta D: ";
+        for (size_t i = 0; i < softmax.size(); ++i){ 
+            std::cout << deltaDs[i] << "," ;
+        }
+        std::cout << "\n";
+    }
 
+    // Update Q values
+    if (useD){
         for (size_t i = 0; i < numAgents; ++i){
             // Pass D as reward and remain at state 0
             agents[i]->updateQ(D_vec[i], 0);
         }
 
     }
-
     // otherwise not using D, pass in G instead
     else{
-
         for (size_t i = 0; i < numAgents; ++i){
             // Pass G as reward and remain at state 0
             agents[i]->updateQ(G, 0);
@@ -237,6 +272,9 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
             agents[i]->setLearningFlag(newLearningStates[i]);
         }
     }
+
+    // Update prevD
+    prevD = D_vec;
 
 
     return G;
