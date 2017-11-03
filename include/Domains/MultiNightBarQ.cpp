@@ -2,10 +2,10 @@
 
 MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::string evalFunc, 
                                double lr, double discount, double probRandom, double maxReward, 
-                               size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch): 
+                               size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch, double temperature): 
                                numNights(nNights), capacity(cap), numAgents(nAgents), 
                                numAgentsDisabled(nAgentsDisabled), adaptive(adaptiveLearning),
-                               maxEpoch(mEpoch){
+                               temp(temperature), maxEpoch(mEpoch){
 
     numAgentsLearning = nAgents - numAgentsDisabled;
     size_t numStates = 1; // single state problem
@@ -42,10 +42,10 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::
 
 MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barOccupancyPad, size_t nAgents, std::string evalFunc, 
                                double lr, double discount, double probRandom, double maxReward, size_t nAgentsDisabled, 
-                               int adaptiveLearning, size_t mEpoch): 
+                               int adaptiveLearning, size_t mEpoch, double temperature): 
                                numNights(nNights), capacity(cap), numAgents(nAgents), 
                                numAgentsDisabled(nAgentsDisabled), adaptive(adaptiveLearning),
-                               maxEpoch(mEpoch), barOccupancyPadding(barOccupancyPad){
+                               temp(temperature), maxEpoch(mEpoch), barOccupancyPadding(barOccupancyPad){
 
     size_t numStates = 1; // single state problem
     size_t numActions = nNights; // each agent can choose which night to go on
@@ -168,7 +168,6 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
             numAgentsLearning = 0;
             double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
             std::vector<double> softmax;
-            double total = 0;
             for (size_t i = 0; i < numAgents; ++i){
                 double prob = 1 - std::exp(impacts[i] * negInvTemp);
                 double rand = distReal(generator);
@@ -332,6 +331,8 @@ void MultiNightBarQ::outputParameters(char* fname, size_t numEpochs){
     paramFile << "Capacity: " << capacity << "\n";
     paramFile << "Number Agents: "<< numAgents << "\n";
     paramFile << "Number Agents Disabled: " << numAgentsDisabled << "\n";
+    paramFile << "Adaptive Learning Type: " << adaptive << "\n";
+    paramFile << "Temperature (Only used if learning type softmax): " << temp << "\n"; 
     paramFile << "Evaluation Function: " << evaluationFunction << "\n";
     paramFile << "Agent Q-Learning parameters:\n";
     paramFile << "  Learning Rate: " << learningRate << "\n";
@@ -363,6 +364,6 @@ double MultiNightBarQ::temperature(size_t epochNumber){
     // try a linear temperature function for now
     // std::cout << "temperature = " << 1- (double)epochNumber/(double)maxEpoch << std::endl;
     // return 1- (double)epochNumber / (double)maxEpoch;
-    return 250;
+    return temp;
 
 }

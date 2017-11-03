@@ -18,11 +18,11 @@ class MultiNightBarQ{
   public:
     MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::string evalFunc, 
                    double lr, double discountFactor, double probRandom, double maxReward,
-                   size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch);
+                   size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch, double temperature);
 
     MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barOccupancyPad, size_t nAgents, std::string evalFunc, 
                    double lr, double discountFactor, double probRandom, double maxReward,
-                   size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch);
+                   size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch, double temperature);
 
     ~MultiNightBarQ();
     
@@ -130,6 +130,7 @@ class MultiNightBarQ{
     int adaptive;
 
     double prevG; /// the previous global reward
+    double temp;
     
     std::ofstream evalFile;
     std::ofstream actFile;

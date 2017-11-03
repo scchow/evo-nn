@@ -7,11 +7,15 @@ def main():
     epochs = 5000
     nights = 10
     capacity = 10
-    numTrials = 4
+    numTrials = 9
     numAgents = 100
-    date = "2017-11-01_17-52-06"
-    adapt_type = "softmax"
-    variations = [100]
+    # date, adapt_type = ("2017-11-01_16-51-35", "max") 
+    # date = "2017-11-01_16-51-35"
+    # date, adapt_type = ("2017-11-02_15-07-30", "softmax")
+    # date, adapt_type = ("2017-11-02_15-25-13", "softmax")
+    date, adapt_type = ("2017-11-02_15-51-18", "softmax") # temperature set at 1000
+    # adapt_type = "max"
+    variations = [numAgents]
     baseResultsPath = os.path.join("build", "Results",date, "MultiNightBarQ","adaptive_"+adapt_type)
 
     # baseResultsPath = os.path.join("build", "Results_10-25", "MultiNightBarQ", "10_nights", "10000_epochs", str(numAgents) + "_agents")
@@ -78,7 +82,7 @@ def main():
 
 
     plt.yticks(range(0,100,10))
-    plt.title("Performance vs Number of Epochs for " + str(nights) + " Nights of " + str(capacity) + " Capacity with " + str(numAgents) + " adaptive softmax Agents")
+    plt.title("Performance vs Number of Epochs for " + str(nights) + " Nights of " + str(capacity) + " Capacity with " + str(numAgents) + " adaptive " + adapt_type+ " Agents")
     plt.xlabel("Number of Epochs")
     plt.ylabel("Performance (max 100)")
     # plt.ylim([0,110])

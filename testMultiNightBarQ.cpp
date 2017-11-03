@@ -10,7 +10,7 @@ using std::vector;
 using std::string;
 using namespace Eigen;
 
-int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int trialNum, std::vector<int> barPadding, int adaptiveLearning, size_t maxEpoch){
+int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int trialNum, std::vector<int> barPadding, int adaptiveLearning, size_t maxEpoch, double temp){
     std::cout << "Testing MultiNightBarQ class in MultiNightBarQ.h\n";
     
     size_t capacity = 10;
@@ -29,6 +29,7 @@ int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int 
     std::cout << "This program will use Q-learning to train " << numAgents << "-agent team over " << nEps << " learning epochs\n";
     std::cout << nAgentsDisabled << " Agents will be not be learning\n";
     std::cout << "Adaptive Training is set to " << adaptiveLearning <<"\n";
+    std::cout << " Temperature (only matters for softmax): " << temp << "\n";
     std::cout << "Agent Q-Learning parameters:\n";
     std::cout << "  Learning Rate: " << learningRate << "\n";
     std::cout << "  Discount: " << discount << "\n";
@@ -44,17 +45,18 @@ int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int 
     // std::cin >> trialNum;
     
     MultiNightBarQ trainDomain(numNights, capacity, barPadding, numAgents, evalFunc, 
-                                 learningRate, discount, epsilon, maxReward, nAgentsDisabled, adaptiveLearning, maxEpoch);
+                                 learningRate, discount, epsilon, maxReward, nAgentsDisabled, adaptiveLearning, maxEpoch, temp);
 
     int buffSize = 500;
     char fileDir[buffSize];
 
-    sprintf(fileDir,"Results/%s/MultiNightBarQ/%s/%d_agents-%d_disabled/trial_%d",
+    sprintf(fileDir,"Results/%s/MultiNightBarQ/%s%s/%d_agents-%d_disabled/trial_%d",
             timeStr, 
             adaptiveLearning == 0 ? "non-adaptive" : 
                 (adaptiveLearning==1 ? "adaptive_max_fixed" :
                 (adaptiveLearning==2 ? "adaptive_max" : 
-                (adaptiveLearning==3 ? "adaptive_softmax" : "unknown"))), 
+                (adaptiveLearning==3 ? "adaptive_softmax/temp_" : "unknown"))),
+            adaptiveLearning == 3 ? std::to_string(temp).c_str() : "",
             (int)numAgents,
             (int)nAgentsDisabled,
             trialNum
@@ -167,9 +169,10 @@ int main(){
     size_t numTrials = 20;
     size_t maxEpoch = 3000;
     int adaptiveLearning = 3;
-    std::vector<size_t> numAgentVariations = {100, 150, 200, 50};
+    std::vector<size_t> numAgentVariations = {100};
 
     std::vector<int> barPadding = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    std::vector<double> temps = {10, 50, 100, 500, 1000, 5000, 10000};
 
     // Get timestamp
     time_t rawtime;
@@ -190,13 +193,16 @@ int main(){
             size_t numDisabled = i*10; 
             for (size_t j = 0; j < numTrials; ++j){
                 if (numAgents > numDisabled){
-                    runMultiTrials(timeStr, numAgents, numDisabled, j, barPadding, adaptiveLearning, maxEpoch);
+                    runMultiTrials(timeStr, numAgents, numDisabled, j, barPadding, adaptiveLearning, maxEpoch, 0);
                 }
             }
         }
         else{
-            for (size_t j = 0; j < numTrials; ++j){
-                runMultiTrials(timeStr, numAgents, 0, j, barPadding, adaptiveLearning, maxEpoch);
+            for (size_t t = 0; t < temps.size(); ++t){
+                double temp = temps[t];
+                for (size_t j = 0; j < numTrials; ++j){
+                    runMultiTrials(timeStr, numAgents, 0, j, barPadding, adaptiveLearning, maxEpoch, temp);
+                }
             }
         }
     }
