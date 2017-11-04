@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 import itertools
+from matplotlib.ticker import FuncFormatter, MaxNLocator
+
 
 def main():
     epochs = 3000
@@ -9,11 +11,11 @@ def main():
     capacity = 10
     numTrials = 20
     maxAgents = 100
-    # date = ("2017-11-03_08-14-15") # discount = 0.9
-    date = ("2017-11-03_10-02-19") # discount = 0
+    date = ("2017-11-03_08-14-15") # discount = 0.9
+    # date = ("2017-11-03_10-02-19") # discount = 0
 
-    numDisabled = [10, 20, 30, 50, 70, 90]
-    baseResultsPath = os.path.join("build", "Results", date, "MultiNightBarQ", "non-adaptive")
+    numDisabled = [0,10, 20, 30, 50, 70, 90]
+    baseResultsPath = os.path.join("build", "Results_11-3", date, "MultiNightBarQ", "non-adaptive")
 
     paths = map(lambda x: os.path.join(baseResultsPath, str(maxAgents)+"_agents", str(x)+"_disabled"), numDisabled)
 
@@ -71,14 +73,27 @@ def main():
     handles, labels = ax.get_legend_handles_labels()
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax.get_yaxis().set_tick_params(which='both', direction='out')
+    # major ticks every 20, minor ticks every 5                                      
+    major_ticks = np.arange(0, 101, 20)                                              
+    minor_ticks = np.arange(0, 101, 5)
 
+    # ax.set_yticklabels(major_ticks,fontsize=20)                                               
+                                       
+    # ax.set_yticks(major_ticks)                                                       
+    # ax.set_yticks(minor_ticks, minor=True) 
+    # ax.grid(which='both')                                                            
 
+    # or if you want differnet settings for the grids:                               
+    # ax.grid(which='minor', alpha=0.2)                                                
+    # ax.grid(which='major', alpha=0.5)   
 
     plt.yticks(range(0,100,10))
     plt.title("Performance vs Number of Epochs for " + str(nights) + " Nights of " + str(capacity) + " Capacity with " + str(maxAgents) + " non-adaptive Agents")
     plt.xlabel("Number of Epochs")
     plt.ylabel("Performance (max 100)")
     plt.ylim([0,110])
+    plt.yticks(np.arange(0, 110, 10))
     ax.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5), title="Number Agents Disabled")
     plt.show()  
 

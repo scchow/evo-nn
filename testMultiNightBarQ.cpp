@@ -170,7 +170,7 @@ int main(){
     size_t numTrials = 20;
     size_t maxEpoch = 3000;
     int adaptiveLearning;
-    std::vector<size_t> numAgentVariations = {200,50,150};
+    std::vector<size_t> numAgentVariations = {100,200,50,150};
 
     std::vector<int> barPadding = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     std::vector<double> temps = {10, 50, 100, 500, 1000, 5000, 10000};
@@ -181,7 +181,7 @@ int main(){
     // 2 - Centralized Max - Probabality = Largest Normalize by largest Impact
     // 3 - SoftMax with dG/dpi as impact
     // 4 - SoftMax with dD as impact
-    std::vector<int> adaptiveLearningSchemes = {3,0,2,1};
+    std::vector<int> adaptiveLearningSchemes = {4};
 
     // Get timestamp
     time_t rawtime;

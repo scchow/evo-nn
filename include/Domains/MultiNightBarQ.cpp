@@ -228,7 +228,7 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
             deltaDs.push_back(deltaD);
             double prob = 1 - std::exp(deltaD * negInvTemp);
             double rand = distReal(generator);
-            std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
+            // std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
             if (rand < prob){
                 newLearningStates[i] = true;
                 numAgentsLearning += 1;
@@ -241,7 +241,17 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
             std::cout << softmax[i] << "," ;
         }
         std::cout << "\n";
-        std::cout << "delta D: ";
+        std::cout << "D:\n ";
+        for (size_t i = 0; i < softmax.size(); ++i){ 
+            std::cout << D_vec[i] << "," ;
+        }
+        std::cout << "\n";
+        std::cout << "prevD: \n";
+        for (size_t i = 0; i < softmax.size(); ++i){ 
+            std::cout << prevD[i] << "," ;
+        }
+        std::cout << "\n";
+        std::cout << "D: \n";
         for (size_t i = 0; i < softmax.size(); ++i){ 
             std::cout << deltaDs[i] << "," ;
         }
