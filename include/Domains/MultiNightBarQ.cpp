@@ -226,9 +226,10 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
         for (size_t i = 0; i < numAgents; ++i){
             double deltaD = std::abs(std::abs(D_vec[i]) - std::abs(prevD[i]));
             deltaDs.push_back(deltaD);
-            double prob = 1 - std::exp(deltaD * negInvTemp);
+            double impact = agents[i]->computeImpact(std::abs(deltaD));
+            double prob = 1 - std::exp(impact * negInvTemp);
             double rand = distReal(generator);
-            // std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
+            std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
             if (rand < prob){
                 newLearningStates[i] = true;
                 numAgentsLearning += 1;

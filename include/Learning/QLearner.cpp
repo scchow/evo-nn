@@ -110,16 +110,17 @@ void QLearner::updateQ(double reward, size_t nextState){
         // }
 
 
-        /* Previous Update Step
-        double maxValueNextState = *std::max_element( Q[nextState].begin(), Q[nextState].end() );
-        double dQ = learningRate * (reward + (discountFactor * maxValueNextState) - Q[currState][currAction]);
-        // Update Q-value table
-        Q[currState][currAction] = Q[currState][currAction] + dQ;
-        // Compute change in policy for future impact computation
-        deltaQ = std::abs(dQ);
-        */
+        // Previous Update Step
 
-        double newQ = (learningRate * Q[currState][currAction]) + ((1 - learningRate) * reward);
+        // double maxValueNextState = *std::max_element( Q[nextState].begin(), Q[nextState].end() );
+        // double dQ = learningRate * (reward + (discountFactor * maxValueNextState) - Q[currState][currAction]);
+        // // Update Q-value table
+        // Q[currState][currAction] = Q[currState][currAction] + dQ;
+        // // Compute change in policy for future impact computation
+        // deltaQ = std::abs(dQ);
+
+
+        double newQ = ((1-learningRate) * Q[currState][currAction]) + (learningRate * reward);
         deltaQ = std::abs(newQ - Q[currState][currAction]);
         Q[currState][currAction] = newQ;
 

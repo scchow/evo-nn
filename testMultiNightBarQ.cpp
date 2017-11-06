@@ -38,6 +38,7 @@ int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int 
     std::cout << "Environment parameters:\n";
     std::cout << "  Bar capacity: " << capacity << "\n";
     std::cout << "  Number of nights: " << numNights << "\n";
+    std::cout << "Using learning Rate (alpha) only Q-Learning";
 
     
     // int trialNum;
@@ -170,17 +171,17 @@ int main(){
     size_t numTrials = 20;
     size_t maxEpoch = 3000;
     int adaptiveLearning;
-    std::vector<size_t> numAgentVariations = {100,200,50,150};
+    std::vector<size_t> numAgentVariations = {100};
 
     std::vector<int> barPadding = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    std::vector<double> temps = {10, 50, 100, 500, 1000, 5000, 10000};
+    std::vector<double> temps = {100,200,300,500,1000};
 
     // Adaptive Learning types
     // 0 - No Learning
     // 1 - Select Max n agents
     // 2 - Centralized Max - Probabality = Largest Normalize by largest Impact
     // 3 - SoftMax with dG/dpi as impact
-    // 4 - SoftMax with dD as impact
+    // 4 - SoftMax with dD/dpi as impact
     std::vector<int> adaptiveLearningSchemes = {4};
 
     // Get timestamp

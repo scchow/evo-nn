@@ -11,11 +11,11 @@ def main():
     capacity = 10
     numTrials = 20
     maxAgents = 100
-    date = ("2017-11-03_08-14-15") # discount = 0.9
-    # date = ("2017-11-03_10-02-19") # discount = 0
+    # date = ("2017-11-03_08-14-15") # discount = 0.9
+    date = ("2017-11-03_10-02-19") # discount = 0
 
-    numDisabled = [0,10, 20, 30, 50, 70, 90]
-    baseResultsPath = os.path.join("build", "Results_11-3", date, "MultiNightBarQ", "non-adaptive")
+    numDisabled = [0, 20, 50, 60, 70, 90]
+    baseResultsPath = os.path.join("build", "Results", date, "MultiNightBarQ", "non-adaptive")
 
     paths = map(lambda x: os.path.join(baseResultsPath, str(maxAgents)+"_agents", str(x)+"_disabled"), numDisabled)
 
@@ -56,6 +56,8 @@ def main():
 
     # colors = ["r", "g", "b", "colors", "m", "k"]
     markers = itertools.cycle(('o', 'v', 'x', 's', 'p', '^', '<', '>'))
+    linestyles = itertools.cycle(('-', '--', '-.', ':'))
+
     ax = plt.gca()
     i = 0
     increment = 200
@@ -67,7 +69,7 @@ def main():
         errors = value[:,2][:maxEpoch:increment]
         # color = next(ax._get_lines.color_cycle)
         # plt.errorbar(x_axis, y_axis, errors, linestyle='solid', marker=markers.next(), markerfacecolor=color, markeredgecolor=color, c=color, label=str(key), mew=5.0)
-        plt.errorbar(x_axis, y_axis, errors, linestyle='solid', marker=markers.next(), label=str(key), mew=5.0)
+        plt.errorbar(x_axis, y_axis, errors, linestyle=linestyles.next(), marker=markers.next(), label=str(key), mew=5.0)
         i+=1
 
     handles, labels = ax.get_legend_handles_labels()
@@ -89,12 +91,12 @@ def main():
     # ax.grid(which='major', alpha=0.5)   
 
     plt.yticks(range(0,100,10))
-    plt.title("Performance vs Number of Epochs for " + str(nights) + " Nights of " + str(capacity) + " Capacity with " + str(maxAgents) + " non-adaptive Agents")
+    plt.title("Performance vs Number of Epochs for " + str(nights) + " Nights of " + str(capacity) + " Capacity with " + str(maxAgents) + " Agents")
     plt.xlabel("Number of Epochs")
     plt.ylabel("Performance (max 100)")
     plt.ylim([0,110])
     plt.yticks(np.arange(0, 110, 10))
-    ax.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5), title="Number Agents Disabled")
+    ax.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5), title="Number of Agents\nNot Learning")
     plt.show()  
 
 

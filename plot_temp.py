@@ -10,13 +10,22 @@ def main():
     numTrials = 20
     numAgents = 100
     # date, adapt_type = ("2017-11-03_08-14-15", "softmax") # varying temperature - discount = 0.9
-    date, adapt_type = ("2017-11-03_10-02-19", "softmax") # varying temperature - discount = 0
+    # date, adapt_type = ("2017-11-03_10-02-19", "softmax") # varying temperature - discount = 0
+    # date, adapt_type = ("2017-11-04_05-24-47", "softmax_D") # dD metric - discount = 0
+    # date, adapt_type = ("2017-11-04_06-29-28", "softmax_D") # dD/dPi impact - discount = 0
 
 
-    temperatures = [10, 50, 100, 500, 1000, 5000, 10000]
-    baseResultsPath = os.path.join("build", "Results", date, "MultiNightBarQ","adaptive_"+adapt_type)
+    # Use this reordering so that the first two get same plot coloring/symbol as comparison plot
+    # If plot something else, remember to change the ordering using list at the bottom
+    temperatures = ["All Agents Learning", 300, 100, 500, 1000, 5000]
+    # temperatures = [10, 50]
+    # baseResultsPath = os.path.join("build", "Results", date, "MultiNightBarQ","adaptive_"+adapt_type)
 
-    paths = map(lambda x: os.path.join(baseResultsPath, "temp_"+str(x),str(numAgents)+"_agents", "0_disabled"), temperatures)
+    # paths = map(lambda x: os.path.join(baseResultsPath, "temp_"+str(x),str(numAgents)+"_agents", "0_disabled"), temperatures)
+
+    paths = map(lambda x: os.path.join("build", "Results", "adaptive_softmax", "temp_"+str(x),str(numAgents)+"_agents", "0_disabled"), temperatures[1:])
+
+    paths = [os.path.join("build", "Results", "2017-11-03_10-02-19", "MultiNightBarQ","non-adaptive", "100_agents", "0_disabled")] + paths
 
     dataDict = {}
 
@@ -55,6 +64,7 @@ def main():
 
     # colors = ["r", "g", "b", "colors", "m", "k"]
     markers = itertools.cycle(('o', 'v', 'x', 's', 'p', '^', '<', '>'))
+    linestyles = itertools.cycle(('-', '--', '-.', ':'))
     ax = plt.gca()
     i = 0
     increment = 200
@@ -66,7 +76,7 @@ def main():
         errors = value[:,2][:maxEpoch:increment]
         # color = next(ax._get_lines.color_cycle)
         # plt.errorbar(x_axis, y_axis, errors, linestyle='solid', marker=markers.next(), markerfacecolor=color, markeredgecolor=color, c=color, label=str(key), mew=5.0)
-        plt.errorbar(x_axis, y_axis, errors, linestyle='solid', marker=markers.next(), label=str(key), mew=5.0)
+        plt.errorbar(x_axis, y_axis, errors, linestyle=linestyles.next(), marker=markers.next(), label=str(key), mew=5.0)
         i+=1
 
     handles, labels = ax.get_legend_handles_labels()
@@ -76,11 +86,16 @@ def main():
 
 
     plt.yticks(range(0,100,10))
-    plt.title("Performance vs Number of Epochs for " + str(nights) + " Nights of " + str(capacity) + " Capacity with " + str(numAgents) + " adaptive " + adapt_type+ " Agents")
+    plt.title("Performance vs Number of Epochs for " + str(nights) + " Nights of " + str(capacity) + " Capacity with " + str(numAgents) + " Adaptive " + "Agents")
     plt.xlabel("Number of Epochs")
     plt.ylabel("Performance (max 100)")
     plt.ylim([0,110])
-    ax.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5), title="Temperature")
+    plt.yticks(np.arange(0, 110, 10))
+    handles, labels = ax.get_legend_handles_labels()
+    # sort both labels and handles by labels
+    order = [0,2,1,3,4,5]
+    # plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+    ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order], loc='center left', bbox_to_anchor=(1, 0.5), title="Temperature")
     plt.show()  
 
 

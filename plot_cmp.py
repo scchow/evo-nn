@@ -4,32 +4,29 @@ import numpy as np
 import itertools
 
 def main():
-    epochs = 5000
+    epochs = 3000
     nights = 10
     capacity = 10
-    numTrials = 9
+    numTrials = 20
     numAgents = 100
-    # date, adapt_type = ("2017-11-01_16-51-35", "max") 
-    # date = "2017-11-01_16-51-35"
-    # date, adapt_type = ("2017-11-02_15-07-30", "softmax")
-    # date, adapt_type = ("2017-11-02_15-25-13", "softmax")
-    date, adapt_type = ("2017-11-02_15-51-18", "softmax") # temperature set at 1000
-    date, adapt_type = ("2017-11-04_05-24-47", "softmax_D")
-    # adapt_type = "max"
-    variations = [numAgents]
-    baseResultsPath = os.path.join("build", "Results",date, "MultiNightBarQ","adaptive_"+adapt_type)
+    # date, adapt_type = ("2017-11-03_08-14-15", "softmax") # varying temperature - discount = 0.9
+    # date, adapt_type = ("2017-11-03_10-02-19", "softmax") # varying temperature - discount = 0
 
-    # baseResultsPath = os.path.join("build", "Results_10-25", "MultiNightBarQ", "10_nights", "10000_epochs", str(numAgents) + "_agents")
+    paths = \
+    [ 
+        os.path.join("build", "Results", "2017-11-03_10-02-19", "MultiNightBarQ","non-adaptive", "100_agents", "0_disabled"),\
+        # os.path.join("build", "Results", "2017-11-03_10-02-19", "MultiNightBarQ","adaptive_softmax","temp_300","100_agents", "0_disabled"),\
+        os.path.join("build", "Results", "2017-11-04_19-03-07", "MultiNightBarQ","adaptive_softmax","temp_300","100_agents", "0_disabled")\
+    ] 
 
+    labels = ["All Agents Learning", "Adaptive Agents"]
 
-    # variations = [0, 90, 50]
-    paths = map(lambda x: os.path.join(baseResultsPath, str(x)+"_agents-0_disabled"), variations)
 
     dataDict = {}
 
     # loop through each variation
     for i in range(len(paths)):
-        numAgentsNotLearning = variations[i]
+        label = labels[i]
         path = paths[i]
 
         csvFname = "results.csv"
@@ -52,42 +49,47 @@ def main():
         # print data
 
         # associate array with number of agents not learning in dictionary
-        dataDict[numAgentsNotLearning] = meanStd
+        dataDict[label] = meanStd
 
     # Plot Performance vs Num Epochs for each variation
-    numplots = len(variations)
+    numplots = len(paths)
     # colormap = plt.cm.gist_ncar
     plt.style.use('ggplot')
     # plt.gca().set_prop_cycle(plt.cycler('color', plt.cm.jet(np.linspace(0, 1, numplots))))
 
     # colors = ["r", "g", "b", "colors", "m", "k"]
     markers = itertools.cycle(('o', 'v', 'x', 's', 'p', '^', '<', '>'))
+    linestyles = itertools.cycle(('-', '--', '-.', ':'))
     ax = plt.gca()
     i = 0
     increment = 200
     maxEpoch = 3000
-    for key in variations:
+    for key in labels:
         value = dataDict[key]
         x_axis = value[:,0][:maxEpoch:increment]
         y_axis = value[:,1][:maxEpoch:increment]
         errors = value[:,2][:maxEpoch:increment]
         # color = next(ax._get_lines.color_cycle)
         # plt.errorbar(x_axis, y_axis, errors, linestyle='solid', marker=markers.next(), markerfacecolor=color, markeredgecolor=color, c=color, label=str(key), mew=5.0)
-        plt.errorbar(x_axis, y_axis, errors, linestyle='solid', marker=markers.next(), label=str(key), mew=5.0)
+        ls = linestyles.next()
+        eb1=plt.errorbar(x_axis, y_axis, errors, linestyle=ls, marker=markers.next(), label=str(key), mew=5.0)
+        eb1[-1][0].set_linestyle(ls) #eb1[-1][0] is the LineCollection objects of the errorbar lines
+
         i+=1
 
-    # handles, labels = ax.get_legend_handles_labels()
-    # box = ax.get_position()
-    # ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    handles, labels = ax.get_legend_handles_labels()
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 
 
 
     plt.yticks(range(0,100,10))
-    plt.title("Performance vs Number of Epochs for " + str(nights) + " Nights of " + str(capacity) + " Capacity with " + str(numAgents) + " adaptive " + adapt_type+ " Agents")
+    plt.title("Performance vs Number of Epochs for " + str(nights) + " Nights of " + str(capacity) + " Capacity with " + str(numAgents) + " Agents")
     plt.xlabel("Number of Epochs")
     plt.ylabel("Performance (max 100)")
-    # plt.ylim([0,110])
-    # ax.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5), title="Number of Agents Not Learning")
+    plt.ylim([0,110])
+    plt.yticks(np.arange(0, 110, 10))
+    ax.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5), title="Algorithm")
     plt.show()  
 
 
