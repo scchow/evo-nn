@@ -41,9 +41,9 @@ def main():
         trial0 = np.genfromtxt(os.path.join(path, "trial_0", csvFname), delimiter=",")
         data = np.zeros((len(trial0), numTrials))
 
-        for i in range(numTrials):
-            trialData = np.genfromtxt(os.path.join(path, trialFolders[i], csvFname), delimiter=",")
-            data[:,i] = trialData[:,1]
+        for j in range(numTrials):
+            trialData = np.genfromtxt(os.path.join(path, trialFolders[j], csvFname), delimiter=",")
+            data[:,j] = trialData[:,1]
 
         # compute Mean and std deviation and store in numpy array
         meanStd = np.zeros((len(trial0), 3))
