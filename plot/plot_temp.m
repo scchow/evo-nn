@@ -8,13 +8,19 @@ capacity = 10;
 numTrials = 20;
 numAgents = 100;
 
-temperatures = {'300'; '100'; '500'; '1000'; '5000'};
+temperatures = {'10'; '50'; '100'; '300'; '500'};
 
-paths = arrayfun(@(x) strcat('../build/Results/adaptive_softmax/temp_', x, ...
+% paths = arrayfun(@(x) strcat('../build/Results/adaptive_softmax/temp_', x, ...
+%     "/", num2str(numAgents),"_agents/0_disabled"),temperatures);
+% 
+% temperatures = vertcat(['All Agents Learning'], temperatures);
+% paths = vertcat('../build/Results/2017-11-03_10-02-19/MultiNightBarQ/non-adaptive/100_agents/0_disabled', paths);
+
+paths = arrayfun(@(x) strcat('results_11-8/final/MultiNightBarQ/adaptive_softmax_G-distributed/temp_', x, ...
     "/", num2str(numAgents),"_agents/0_disabled"),temperatures);
 
-temperatures = vertcat(['All Agents Learning'], temperatures);
-paths = vertcat('../build/Results/2017-11-03_10-02-19/MultiNightBarQ/non-adaptive/100_agents/0_disabled', paths);
+temperatures = vertcat({'All Agents Learning'}, temperatures);
+paths = vertcat(strcat('results_11-8/final/MultiNightBarQ/non-adaptive', '/', num2str(numAgents),'_agents/0_disabled'), paths);
 
 dataDict = containers.Map();
 
@@ -38,7 +44,7 @@ for i = 1:size(paths)
     meanStd = zeros(size(trial0, 1), 3);
     meanStd(:,1) = trial0(:,1);
     meanStd(:,2) = mean(data, 2);
-    meanStd(:,3) = std(data,0, 2);
+    meanStd(:,3) = std(data,0, 2)./sqrt(numTrials);
     
     dataDict(temp) = meanStd;
     

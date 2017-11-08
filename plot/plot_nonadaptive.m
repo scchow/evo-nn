@@ -5,22 +5,26 @@ setPlot();
 epochs = 3000;
 nights = 10;
 capacity = 10;
-numTrials = 20;
+numTrials = 3;
 numAgents = 100;
 
 date = '2017-11-03_10-02-19';
 
-numDisabled = {'0', '20', '50', '60', '70', '90'};
+% numDisabled = {'0', '20', '50', '60', '70', '90'};
+numDisabled = {'0'};
 
-paths = arrayfun(@(x) strcat('../build/Results/', date, '/MultiNightBarQ/non-adaptive', ...
+% paths = arrayfun(@(x) strcat('../build/Results/', date, '/MultiNightBarQ/non-adaptive', ...
+%     "/", num2str(numAgents),'_agents/',x,'_disabled'),numDisabled);
+
+paths = arrayfun(@(x) strcat('results_11-8/final/MultiNightBarQ/non-adaptive', ...
     "/", num2str(numAgents),'_agents/',x,'_disabled'),numDisabled);
 
 dataDict = containers.Map();
 
 for i = 1:size(paths,2)
-    nDisabled = numDisabled{i}
+    nDisabled = numDisabled{i};
 
-    path = paths(i);
+    path = paths(i)
     
     csvFname = '/results.csv';
     
@@ -37,7 +41,7 @@ for i = 1:size(paths,2)
     meanStd = zeros(size(trial0, 1), 3);
     meanStd(:,1) = trial0(:,1);
     meanStd(:,2) = mean(data, 2);
-    meanStd(:,3) = std(data,0, 2);
+    meanStd(:,3) = std(data,0, 2)./sqrt(numTrials);
     
     dataDict(nDisabled) = meanStd;
     
