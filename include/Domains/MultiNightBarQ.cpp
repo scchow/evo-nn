@@ -116,11 +116,20 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
     // keep track of how many went to each night
     vector<size_t> barOccupancy(numNights, 0);
 
+    // a vector of length numNights, with each element being a vector recording which agents went to that night
+    std::vector<std::vector<size_t>> agentTracker;
+    for (size_t i = 0; i < numNights; ++i){
+        std::vector<size_t> v;
+        agentTracker.push_back(v);
+    }
+
     for (size_t i = 0; i < numAgents; ++i){
         // std::cout << "getting Action of agent "<< i << "\n";
         size_t action = agents[i]->getAction();
         // std::cout << "got action " << "\n";
         barOccupancy[action]++;
+        // std::cout << "action " << action << std::endl; 
+        agentTracker[action].push_back(i);
     }
 
     std::cout << "\nSimulating Epoch Results:" << std::endl;
@@ -151,7 +160,7 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
     // Choose agents to disable
     // Note, disable agents after updating so that they get updated first
     std::vector<bool> newLearningStates(numAgents, 0);
-    if (adaptive > 0 and adaptive < 4){
+    if (adaptive > 0 and adaptive < 6){
         double deltaG = G - prevG;
         std::vector<double> impacts;
         double totalImpact = 0;
@@ -160,12 +169,14 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
         for (size_t i = 0; i < numAgents; ++i){
             impacts.push_back(agents[i]->computeImpact(std::abs(deltaG)));
             totalImpact += impacts[i];
+
         }
 
         // list of agents from least to most impactful
         std::vector<size_t> sortedIndices = sortIndices(impacts);
         // size_t numLearningAgents = numAgents - numAgentsDisabled;
 
+        // adaptive=1 Get n most impactful agents
         if (adaptive == 1){
             // select the most impactful quarter of agents to continue training
             for (size_t i = numAgentsDisabled; i < numAgents; ++i){
@@ -173,10 +184,12 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
             }
         }
 
+        //adaptive=2 normalized max of G (no temperature)
         else if (adaptive == 2){
             numAgentsLearning = 0;
+            double invMaxImpact = 1.0 / *std::max_element(impacts.begin(), impacts.end());
             for (size_t i = 0; i < numAgents; ++i){
-                double prob = impacts[i]/totalImpact;
+                double prob = impacts[i]/invMaxImpact;
                 double rand = distReal(generator);
                 if (rand < prob){
                     newLearningStates[i] = true;
@@ -188,8 +201,8 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
             std::cout << "Number Agents Learning" << numAgentsLearning << std::endl;
         }
 
+        // adaptive=3 impact = dG/dPi, softmax (no normalization) - distributed
         else if (adaptive == 3){
-        
             numAgentsLearning = 0;
             double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
             std::vector<double> softmax;
@@ -217,8 +230,94 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
             }
             std::cout << "\n";
         }
+
+        // adaptive=4 impact = dG/dPi, softmax (normalization with local agents) - locally distributed
+        else if (adaptive == 4){
+
+            // Vector of values of most impactful agent of each night
+            std::vector<double> maxImpacts;
+
+            // compute the max Impact value for each night
+            for (size_t i = 0; i < numNights; ++i){
+                double maxImpact = 0;
+                for (size_t j = 0; j < agentTracker[i].size(); ++j){
+                    double agentImpact = impacts[agentTracker[i][j]];
+                    if (agentImpact > maxImpact){
+                        maxImpact = agentImpact;
+                    }
+                }
+                maxImpacts.push_back(maxImpact);
+            }
+
+            std::vector<double> invMaxImpacts;
+            for (size_t i = 0; i < maxImpacts.size(); ++i){
+                invMaxImpacts.push_back(1/maxImpacts[i]);
+            }
+
+            numAgentsLearning = 0;
+            double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
+            std::vector<double> softmax;
+            for (size_t i = 0; i < numAgents; ++i){
+                // Get night current agent went on
+                size_t agentAction = agents[i]->getCurrentAction();
+                double prob = 1 - std::exp(impacts[i] * negInvTemp * invMaxImpacts[agentAction]);
+                double rand = distReal(generator);
+                std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
+                if (rand < prob){
+                    newLearningStates[i] = true;
+                    numAgentsLearning += 1;
+                }
+                softmax.push_back(prob);
+
+            }
+            std::cout << "number agents learning = " << numAgentsLearning << std::endl;
+            std::cout << "Probs of Learning Vector: ";
+            for (size_t i = 0; i < impacts.size(); ++i){ 
+                std::cout << softmax[i] << "," ;
+            }
+            std::cout << "\n";
+
+            std::cout << "Impact Vector: ";
+            for (size_t i = 0; i < impacts.size(); ++i){ 
+                std::cout << impacts[i] << "," ;
+            }
+            std::cout << "\n";
+        }
+
+        // adaptive=5 impact = dG/dPi, softmax (normalization with all agents) - centralizaed
+        else if (adaptive == 5){
+        
+            numAgentsLearning = 0;
+            double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
+            double invMaxImpact = 1.0 / *std::max_element(impacts.begin(), impacts.end());
+            std::vector<double> softmax;
+            for (size_t i = 0; i < numAgents; ++i){
+                double prob = 1 - std::exp((impacts[i] * invMaxImpact * negInvTemp));
+                double rand = distReal(generator);
+                std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
+                if (rand < prob){
+                    newLearningStates[i] = true;
+                    numAgentsLearning += 1;
+                }
+                softmax.push_back(prob);
+
+            }
+            std::cout << "number agents learning = " << numAgentsLearning << std::endl;
+            std::cout << "Probs of Learning Vector: ";
+            for (size_t i = 0; i < impacts.size(); ++i){ 
+                std::cout << softmax[i] << "," ;
+            }
+            std::cout << "\n";
+
+            std::cout << "Impact Vector: ";
+            for (size_t i = 0; i < impacts.size(); ++i){ 
+                std::cout << impacts[i] << "," ;
+            }
+            std::cout << "\n";
+        }
+
     }
-    else if (adaptive == 4){
+    else if (adaptive == 6){
         numAgentsLearning = 0;
         double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
         std::vector<double> deltaDs;

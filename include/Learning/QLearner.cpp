@@ -16,7 +16,7 @@ QLearner::QLearner(double lr, double discount, double probRandom, double maxRewa
 
     train = true;
 
-    distInt = std::uniform_int_distribution<>(0, nActions);
+    distInt = std::uniform_int_distribution<>(0, nActions-1);
 
 }
 
