@@ -1,4 +1,4 @@
-function plot_temp()
+function plot_numLearning()
 close all 
 
 setPlot();
@@ -6,12 +6,10 @@ epochs = 3000;
 nights = 10;
 capacity = 10;
 numTrials = 20;
-numAgents = 150;
+numAgents = 200;
 
 temperatures = {'50'; '100'; '300'; '500'; '1000'};
 tempLegend = arrayfun(@(x) strcat('$\tau = ', x,'$'), temperatures);
-tempLegend = vertcat({'All Agents Learning'}, tempLegend);
-
 
 % paths = arrayfun(@(x) strcat('../build/Results/adaptive_softmax/temp_', x, ...
 %     "/", num2str(numAgents),"_agents/0_disabled"),temperatures);
@@ -28,8 +26,6 @@ tempLegend = vertcat({'All Agents Learning'}, tempLegend);
 % On Desktop
 paths = arrayfun(@(x) strcat('../build/Results/final_discount0/MultiNightBarQ/adaptive_softmax_G-distributed/temp_', x, ...
     "/", num2str(numAgents),"_agents/0_disabled"),temperatures);
-temperatures = vertcat({'All Agents Learning'}, temperatures);
-paths = vertcat(strcat('../build/Results/final_discount0/MultiNightBarQ/non-adaptive', '/', num2str(numAgents),'_agents/0_disabled'), paths);
 
 dataDict = containers.Map();
 
@@ -38,12 +34,13 @@ for i = 1:size(paths)
 
     path = paths(i);
     
-    csvFname = '/results.csv';
+    csvFname = '/numLearning.csv';
     
     trialFolders = arrayfun(@(x) strcat('/trial_',num2str(x)), 0:numTrials-1, 'UniformOutput', false);
     file = strcat(path, '/trial_0', csvFname)
     trial0 = csvread(file);
     data = zeros(size(trial0, 1), numTrials);
+    data_numLearning = zeros(size(trial0,1), numTrials);
     
     for j = 1:numTrials
        trialData =  csvread(strcat(path, trialFolders(j), csvFname));
@@ -62,9 +59,9 @@ end
 
 
 
-markers = ['x'; 'o'; 'v'; 's'; '^'; 'd'; 'p'];
+markers = ['o'; 'v'; 's'; '^'; 'd'; 'p';'x'];
 linestyles = {'-.'; '-'; '--'};
-c = get(gca, 'colororder');
+colors = get(gca, 'colororder');
 % '-' = baseline
 % 'o' for original
 set(gcf, 'Position', [1000, 800, 560, 420])
@@ -98,12 +95,16 @@ for i = 1:length(dict_keys)
 %     hold on
 
     % Plot line
-    ls = linestyles{1 + mod(i, length(linestyles))};
-    plotHandles(i) = plot(epochs, means, 'LineStyle', ls, 'LineWidth', 2, 'Color', c(i,:));
-    hold on
-    errHandles(i) = errorbar(x_axis, y_axis, errors, 'LineStyle', 'None', 'Marker', markers(mod(i,length(markers))), 'Color', c(i,:));
-    sampleHandles(i) = errorbar(x_axis(1), y_axis(1), errors(1), 'LineStyle', ls, 'Color', c(i,:),'Marker', markers(mod(i,length(markers))));
     
+    ls = linestyles{1 + mod(i, length(linestyles))};
+    c = colors(i+1,:);
+    mkr = markers(mod(i,length(markers)));
+    plotHandles(i) = plot(epochs, means, 'LineStyle', ls, 'LineWidth', 2, 'Color', c);
+    hold on
+    errHandles(i) = errorbar(x_axis, y_axis, errors, ...
+        'LineStyle', 'None', 'Marker', mkr , 'Color', c);
+    sampleHandles(i) = errorbar(x_axis(1), y_axis(1), errors(1), ...
+        'LineStyle', ls, 'Marker', mkr, 'Color', c);
     
 end
 
@@ -111,23 +112,23 @@ end
 %     ' Nights of ', num2str(capacity), ' Capacity with ', num2str(numAgents), ' Adaptive ', 'Agents'));
 
 xlabel('Epoch', 'FontSize', 14, 'Interpreter', 'latex');
-ylabel('Performance (max 100)', 'FontSize', 14, 'Interpreter', 'latex');
+ylabel('Number Agents Learning', 'FontSize', 14, 'Interpreter', 'latex');
 legend(sampleHandles, tempLegend, 'Location', 'SouthEast', 'Interpreter', 'latex');
 
 if numAgents == 100
-    ylabel('Performance (max 100)', 'FontSize', 14, 'Interpreter', 'latex');
-    savefig('bar_temp_100agents.fig')
-    export_fig(gcf, 'bar_temp_100agents.pdf', '-trans');
+    ylabel('Number Agents Learning (max 100)', 'FontSize', 14, 'Interpreter', 'latex');
+    savefig('bar_numLearning_100agents.fig')
+    export_fig(gcf, 'bar_numLearning_100agents.pdf', '-trans');
 
 elseif numAgents == 150
-    ylabel('Performance (max 90)', 'FontSize', 14, 'Interpreter', 'latex');
-    savefig('bar_temp_150agents.fig')
-    export_fig(gcf, 'bar_temp_150agents.pdf', '-trans');
+    ylabel('Number Agents Learning (max 150)', 'FontSize', 14, 'Interpreter', 'latex');
+    savefig('bar_numLearning_150agents.fig')
+    export_fig(gcf, 'bar_numLearning_150agents.pdf', '-trans');
 
 elseif numAgents == 200
-    ylabel('Performance (max 90)', 'FontSize', 14, 'Interpreter', 'latex');
-    savefig('bar_temp_200agents.fig')
-    export_fig(gcf, 'bar_temp_200agents.pdf', '-trans');
+    ylabel('Number Agents Learning (max 200)', 'FontSize', 14, 'Interpreter', 'latex');
+    savefig('bar_numLearning_200agents.fig')
+    export_fig(gcf, 'bar_numLearning_200agents.pdf', '-trans');
 
 else
 'invalid number of agents, cant export_fig'

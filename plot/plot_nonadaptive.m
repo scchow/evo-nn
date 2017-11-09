@@ -9,15 +9,31 @@ numTrials = 20;
 numAgents = 100;
 
 date = '2017-11-03_10-02-19';
+if numAgents == 100
+    numDisabled = {'0', '20', '50', '70', '90'};
 
-numDisabled = {'0', '20', '50', '60', '70', '90'};
+elseif numAgents == 150
+    numDisabled = {'0', '20', '50', '80', '100' '120'};
+
+elseif numAgents == 200
+    numDisabled = {'0', '50', '80', '100', '150', '170'};
+
+else
+    'invalid number of agents'
+end
+    
 % numDisabled = {'0'};
 
 % paths = arrayfun(@(x) strcat('../build/Results/', date, '/MultiNightBarQ/non-adaptive', ...
 %     "/", num2str(numAgents),'_agents/',x,'_disabled'),numDisabled);
 
-paths = arrayfun(@(x) strcat('results_11-8/final_discount0/MultiNightBarQ/non-adaptive', ...
+% paths = arrayfun(@(x) strcat('results_11-8/final_discount0/MultiNightBarQ/non-adaptive', ...
+% paths = arrayfun(@(x) strcat('results_11-8/final/MultiNightBarQ/non-adaptive', ...
+%     "/", num2str(numAgents),'_agents/',x,'_disabled'),numDisabled);
+
+paths = arrayfun(@(x) strcat('../build/Results/final_discount0/MultiNightBarQ/non-adaptive', ...
     "/", num2str(numAgents),'_agents/',x,'_disabled'),numDisabled);
+
 
 dataDict = containers.Map();
 
@@ -49,9 +65,9 @@ end
 
 
 
-markers = ['x'; 'o'; 'v'; 's'; '^'; 'd'; 'p'];
+markers = ['o'; 'v'; 's'; '^'; 'd'; 'p';'x'];
 linestyles = {'-.'; '-'; '--'};
-c = get(gca, 'colororder');
+colors = get(gca, 'colororder');
 % '-' = baseline
 % 'o' for original
 set(gcf, 'Position', [1000, 800, 560, 420])
@@ -59,7 +75,7 @@ set(gca, 'FontName', 'Times New Roman');
 
 
 increment = 200;
-maxEpoch = 3000;
+maxEpoch = 2000;
 dict_keys = numDisabled;
 
 plotHandles = zeros(length(dict_keys),1);
@@ -69,9 +85,9 @@ sampleHandles = zeros(length(dict_keys),1);
 for i = 1:length(dict_keys)
     key = dict_keys{i};
     value = dataDict(key);
-    epochs = value(:,1);
-    means = value(:,2);
-    stderr = value(:,3);
+    epochs = value(1:maxEpoch,1);
+    means = value(1:maxEpoch,2);
+    stderr = value(1:maxEpoch,3);
     
     x_axis = value(1:increment:maxEpoch,1);
     y_axis = value(1:increment:maxEpoch,2);
@@ -82,26 +98,48 @@ for i = 1:length(dict_keys)
 %         );
     
     % Plot line
+    
     ls = linestyles{1 + mod(i, length(linestyles))};
-    plotHandles(i) = plot(epochs, means, 'LineStyle', ls, 'LineWidth', 2, 'Color', c(i,:));
+    c = colors(i,:);
+    mkr = markers(mod(i,length(markers)));
+    plotHandles(i) = plot(epochs, means, 'LineStyle', ls, 'LineWidth', 2, 'Color', c);
     hold on
-    errHandles(i) = errorbar(x_axis, y_axis, errors, 'LineStyle', 'None', 'Marker', markers(mod(i,length(markers))), 'Color', c(i,:));
-    sampleHandles(i) = errorbar(x_axis(1), y_axis(1), errors(1), 'LineStyle', ls, 'Color', c(i,:),'Marker', markers(mod(i,length(markers))));
+    errHandles(i) = errorbar(x_axis, y_axis, errors, ...
+        'LineStyle', 'None', 'Marker', mkr , 'Color', c);
+    sampleHandles(i) = errorbar(x_axis(1), y_axis(1), errors(1), ...
+        'LineStyle', ls, 'Marker', mkr, 'Color', c);
     
 
 end
 
-% title(strcat('Performance vs Number of Epochs for ', num2str(nights), ...
+% title(strcat('Performance vs Epochs for ', num2str(nights), ...
 %     ' Nights of ', num2str(capacity), ' Capacity with ', num2str(numAgents), ' Adaptive ', 'Agents'));
 
-xlabel('Number of Epochs', 'FontSize', 14, 'Interpreter', 'latex');
-ylabel('Performance (max 100)', 'FontSize', 14, 'Interpreter', 'latex');
+xlabel('Epoch', 'FontSize', 14, 'Interpreter', 'latex');
 legend(sampleHandles,numDisabled, 'Location', 'SouthEast', 'Interpreter', 'latex');
 
-export_fig(gcf, 'bar_nonadaptive.pdf', '-trans');
+ylim([10,100]);
+
+if numAgents == 100
+    ylabel('Performance (max 100)', 'FontSize', 14, 'Interpreter', 'latex');
+    savefig('bar_nonadaptive_100agents.fig')
+    export_fig(gcf, 'bar_nonadaptive_100agents.pdf', '-trans');
+
+elseif numAgents == 150
+    ylabel('Performance (max 90)', 'FontSize', 14, 'Interpreter', 'latex');
+    savefig('bar_nonadaptive_150agents.fig')
+    export_fig(gcf, 'bar_nonadaptive_150agents.pdf', '-trans');
+
+elseif numAgents == 200
+    ylabel('Performance (max 90)', 'FontSize', 14, 'Interpreter', 'latex');
+    savefig('bar_nonadaptive_200agents.fig')
+    export_fig(gcf, 'bar_nonadaptive_200agents.pdf', '-trans');
+
+else
+'invalid number of agents, cant export_fig'
 
 end
-
+end
 function setPlot()
 
 width = 3;     % Width in inches
