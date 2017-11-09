@@ -1,12 +1,20 @@
-function plot_temp()
-close all 
+function plot_temp(varargin)
+varargin
+numAgents = 100;
+legendLoc = 'SouthEast';
+if length(varargin)==1
+    numAgents = varargin;
+elseif length(varargin)==2
+    numAgents = varargin{1};
+    legendLoc = varargin{2};
+end
 
-setPlot();
+figure;
 epochs = 3000;
 nights = 10;
 capacity = 10;
 numTrials = 20;
-numAgents = 150;
+% numAgents = 150;
 
 temperatures = {'50'; '100'; '300'; '500'; '1000'};
 tempLegend = arrayfun(@(x) strcat('$\tau = ', x,'$'), temperatures);
@@ -62,14 +70,15 @@ end
 
 
 
-markers = ['x'; 'o'; 'v'; 's'; '^'; 'd'; 'p'];
+markers = ['o'; 'v'; 's'; '^'; 'd'; 'p';'x'];
 linestyles = {'-.'; '-'; '--'};
-c = get(gca, 'colororder');
+colors = get(gca, 'colororder');
 % '-' = baseline
 % 'o' for original
 set(gcf, 'Position', [1000, 800, 560, 420])
 set(gca, 'FontName', 'Times New Roman');
-
+lw = 1;
+fs = 14;
 
 
 increment = 200;
@@ -99,66 +108,42 @@ for i = 1:length(dict_keys)
 
     % Plot line
     ls = linestyles{1 + mod(i, length(linestyles))};
-    plotHandles(i) = plot(epochs, means, 'LineStyle', ls, 'LineWidth', 2, 'Color', c(i,:));
+    c = colors(i,:);
+    mkr = markers(mod(i,length(markers)));
+    plotHandles(i) = plot(epochs, means, 'LineStyle', ls, 'LineWidth', lw, 'Color', c);
     hold on
-    errHandles(i) = errorbar(x_axis, y_axis, errors, 'LineStyle', 'None', 'Marker', markers(mod(i,length(markers))), 'Color', c(i,:));
-    sampleHandles(i) = errorbar(x_axis(1), y_axis(1), errors(1), 'LineStyle', ls, 'Color', c(i,:),'Marker', markers(mod(i,length(markers))));
-    
-    
+    errHandles(i) = errorbar(x_axis, y_axis, errors, ...
+        'LineStyle', 'None', 'Marker', mkr , 'MarkerFaceColor', c, 'Color', c);
+    sampleHandles(i) = errorbar(x_axis(1), y_axis(1), errors(1), ...
+        'LineStyle', ls, 'Marker', mkr, 'MarkerFaceColor', c, 'Color', c,'LineWidth', lw);
 end
 
 % title(strcat('Performance vs Number of Epochs for ', num2str(nights), ...
 %     ' Nights of ', num2str(capacity), ' Capacity with ', num2str(numAgents), ' Adaptive ', 'Agents'));
 
-xlabel('Epoch', 'FontSize', 14, 'Interpreter', 'latex');
-ylabel('Performance (max 100)', 'FontSize', 14, 'Interpreter', 'latex');
-legend(sampleHandles, tempLegend, 'Location', 'SouthEast', 'Interpreter', 'latex');
+set(gca,'fontname','Times New Roman','FontSize',fs)
+grid on 
+
+xlabel('Epoch', 'FontSize', fs, 'Interpreter', 'latex');
+ylabel('Performance (max 100)', 'FontSize', fs, 'Interpreter', 'latex');
+legend(sampleHandles, tempLegend, 'Location', legendLoc, 'Interpreter', 'latex', 'FontSize', fs);
 
 if numAgents == 100
-    ylabel('Performance (max 100)', 'FontSize', 14, 'Interpreter', 'latex');
+    ylabel('Performance (max 100)', 'FontSize', fs, 'Interpreter', 'latex');
     savefig('bar_temp_100agents.fig')
     export_fig(gcf, 'bar_temp_100agents.pdf', '-trans');
 
 elseif numAgents == 150
-    ylabel('Performance (max 90)', 'FontSize', 14, 'Interpreter', 'latex');
+    ylabel('Performance (max 90)', 'FontSize', fs, 'Interpreter', 'latex');
     savefig('bar_temp_150agents.fig')
     export_fig(gcf, 'bar_temp_150agents.pdf', '-trans');
 
 elseif numAgents == 200
-    ylabel('Performance (max 90)', 'FontSize', 14, 'Interpreter', 'latex');
+    ylabel('Performance (max 90)', 'FontSize', fs, 'Interpreter', 'latex');
     savefig('bar_temp_200agents.fig')
     export_fig(gcf, 'bar_temp_200agents.pdf', '-trans');
 
 else
 'invalid number of agents, cant export_fig'
 end
-end
-
-function setPlot()
-
-width = 3;     % Width in inches
-height = 3;    % Height in inches
-alw = 0.75;    % AxesLineWidth
-fsz = 11;      % Fontsize
-lw = 1.5;      % LineWidth
-msz = 8;       % MarkerSize
-
-% The properties we've been using in the figures
-set(0,'defaultLineLineWidth',lw);   % set the default line width to lw
-set(0,'defaultLineMarkerSize',msz); % set the default line marker size to msz
-set(0,'defaultLineLineWidth',lw);   % set the default line width to lw
-set(0,'defaultLineMarkerSize',msz); % set the default line marker size to msz
-
-% Set the default Size for display
-defpos = get(0,'defaultFigurePosition');
-set(0,'defaultFigurePosition', [defpos(1) defpos(2) width*100, height*100]);
-
-% Set the defaults for saving/printing to a file
-set(0,'defaultFigureInvertHardcopy','on'); % This is the default anyway
-set(0,'defaultFigurePaperUnits','inches'); % This is the default anyway
-defsize = get(gcf, 'PaperSize');
-left = (defsize(1)- width)/2;
-bottom = (defsize(2)- height)/2;
-defsize = [left, bottom, width, height];
-set(0, 'defaultFigurePaperPosition', defsize);
 end
