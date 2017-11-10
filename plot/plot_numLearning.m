@@ -67,7 +67,7 @@ end
 
 
 markers = ['o'; 'v'; 's'; '^'; 'd'; 'p';'x'];
-linestyles = {'-.'; '-'; '--'};
+linestyles = {'-';'--'; '-.'};
 colors = get(gca, 'colororder');
 % '-' = baseline
 % 'o' for original
@@ -76,7 +76,8 @@ set(gca, 'FontName', 'Times New Roman');
 lw = 1;
 fs = 14;
 
-increment = 200;
+increment = 20;
+increment1 = 200;
 maxEpoch = 3000;
 dict_keys = temperatures;
 
@@ -88,13 +89,13 @@ sampleHandles = zeros(length(dict_keys),1);
 for i = 1:length(dict_keys)
     key = dict_keys{i};
     value = dataDict(key);
-    epochs = value(:,1);
-    means = value(:,2);
-    stderr = value(:,3);
+    epochs = value(1:increment:maxEpoch,1);
+    means = value(1:increment:maxEpoch,2);
+    stderr = value(1:increment:maxEpoch,3);
     
-    x_axis = value(1:increment:maxEpoch,1);
-    y_axis = value(1:increment:maxEpoch,2);
-    errors = value(1:increment:maxEpoch,3);
+    x_axis = value(1:increment1:maxEpoch,1);
+    y_axis = value(1:increment1:maxEpoch,2);
+    errors = value(1:increment1:maxEpoch,3);
 %     e = errorbar(x_axis, y_axis, errors, ...
 %         'Marker', markers(mod(i,length(markers))), ...
 %         'Linestyle', linestyles{1+mod(i, length(linestyles))} ...
@@ -103,9 +104,9 @@ for i = 1:length(dict_keys)
 
     % Plot line
     
-    ls = linestyles{1 + mod(i, length(linestyles))};
+    ls = linestyles{1+mod(i, length(linestyles))};
     c = colors(i+1,:);
-    mkr = markers(mod(i,length(markers)));
+    mkr = markers(1+mod(i,length(markers)));
     plotHandles(i) = plot(epochs, means, 'LineStyle', ls, 'LineWidth', lw, 'Color', c);
     hold on
     errHandles(i) = errorbar(x_axis, y_axis, errors, ...

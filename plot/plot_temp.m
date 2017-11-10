@@ -49,7 +49,7 @@ for i = 1:size(paths)
     csvFname = '/results.csv';
     
     trialFolders = arrayfun(@(x) strcat('/trial_',num2str(x)), 0:numTrials-1, 'UniformOutput', false);
-    file = strcat(path, '/trial_0', csvFname)
+    file = strcat(path, '/trial_0', csvFname);
     trial0 = csvread(file);
     data = zeros(size(trial0, 1), numTrials);
     
@@ -80,8 +80,8 @@ set(gca, 'FontName', 'Times New Roman');
 lw = 1;
 fs = 14;
 
-
-increment = 200;
+increment = 20;
+increment1 = 200;
 maxEpoch = 3000;
 dict_keys = temperatures;
 
@@ -93,13 +93,13 @@ sampleHandles = zeros(length(dict_keys),1);
 for i = 1:length(dict_keys)
     key = dict_keys{i};
     value = dataDict(key);
-    epochs = value(:,1);
-    means = value(:,2);
-    stderr = value(:,3);
+    epochs = value(1:increment:maxEpoch,1);
+    means = value(1:increment:maxEpoch,2);
+    stderr = value(1:increment:maxEpoch,3);
     
-    x_axis = value(1:increment:maxEpoch,1);
-    y_axis = value(1:increment:maxEpoch,2);
-    errors = value(1:increment:maxEpoch,3);
+    x_axis = value(1:increment1:maxEpoch,1);
+    y_axis = value(1:increment1:maxEpoch,2);
+    errors = value(1:increment1:maxEpoch,3);
 %     e = errorbar(x_axis, y_axis, errors, ...
 %         'Marker', markers(mod(i,length(markers))), ...
 %         'Linestyle', linestyles{1+mod(i, length(linestyles))} ...
@@ -127,6 +127,7 @@ grid on
 xlabel('Epoch', 'FontSize', fs, 'Interpreter', 'latex');
 ylabel('Performance (max 100)', 'FontSize', fs, 'Interpreter', 'latex');
 legend(sampleHandles, tempLegend, 'Location', legendLoc, 'Interpreter', 'latex', 'FontSize', fs);
+ylim([10,100]);
 
 if numAgents == 100
     ylabel('Performance (max 100)', 'FontSize', fs, 'Interpreter', 'latex');

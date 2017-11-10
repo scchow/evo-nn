@@ -1,5 +1,5 @@
 function plot_nonadaptive(varargin)
-varargin
+varargin;
 numAgents = 100;
 legendLoc = 'SouthEast';
 if length(varargin)==1
@@ -83,7 +83,8 @@ set(gca, 'FontName', 'Times New Roman');
 lw = 1;
 fs = 14;
 
-increment = 200;
+increment = 20;
+increment1 = 200;
 maxEpoch = 2000;
 dict_keys = numDisabled;
 
@@ -94,13 +95,13 @@ sampleHandles = zeros(length(dict_keys),1);
 for i = 1:length(dict_keys)
     key = dict_keys{i};
     value = dataDict(key);
-    epochs = value(1:maxEpoch,1);
-    means = value(1:maxEpoch,2);
-    stderr = value(1:maxEpoch,3);
+    epochs = value(1:increment:maxEpoch,1);
+    means = value(1:increment:maxEpoch,2);
+    stderr = value(1:increment:maxEpoch,3);
     
-    x_axis = value(1:increment:maxEpoch,1);
-    y_axis = value(1:increment:maxEpoch,2);
-    errors = value(1:increment:maxEpoch,3);
+    x_axis = value(1:increment1:maxEpoch,1);
+    y_axis = value(1:increment1:maxEpoch,2);
+    errors = value(1:increment1:maxEpoch,3);
 %     e = plot(x_axis, y_axis,... errors, ...
 %         'Marker', markers(mod(i,length(markers))), ...
 %         'Linestyle', linestyles{1+mod(i, length(linestyles))} ...
