@@ -357,6 +357,16 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
         }
         std::cout << "\n";
     }
+    else if (adaptive == 7){
+        numAgentsLearning = 0;
+        for (size_t i = 0; i < numAgents; ++i){
+            double rand = distReal(generator);
+            if (rand < temp){
+                newLearningStates[i] = true;
+                numAgentsLearning += 1;
+            }
+        }
+    }
 
     // Update Q values
     if (useD){

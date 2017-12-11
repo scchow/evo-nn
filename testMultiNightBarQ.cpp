@@ -60,8 +60,9 @@ int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int 
                 (adaptiveLearning==4 ? "adaptive_softmax_G-localized/temp_" :
                 (adaptiveLearning==5 ? "adaptive_softmax_G-centralized/temp" :
                 (adaptiveLearning==6 ? "adaptive_softmax_D/temp_" :
-                    "unknown")))))),
-            adaptiveLearning >=3 ? std::to_string((int)temp).c_str() : "",
+                (adaptiveLearning==7 ? "fixed_prob_learning/prob_" :
+                    "unknown"))))))),
+            adaptiveLearning >=3 ? std::to_string(temp).c_str() : "",
             (int)numAgents,
             (int)nAgentsDisabled,
             trialNum
@@ -174,10 +175,11 @@ int main(){
     size_t numTrials = 20;
     size_t maxEpoch = 3000;
     int adaptiveLearning;
-    std::vector<size_t> numAgentVariations = {100,200,150};
+    std::vector<size_t> numAgentVariations = {50, 200, 150};
 
     std::vector<int> barPadding = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    std::vector<double> temps = {10, 50, 100,300,500, 1000};
+    // In fixed probability learning, temperature repurposed to be probability of an agent learning
+    std::vector<double> temps = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
 
     // Adaptive Learning types
     // 0 - No Learning
@@ -196,8 +198,10 @@ int main(){
     /// 4 - adaptive learning using softmax of G with temperature - Local communication verion (normalization with same night)
     /// 5 - adaptive learning using softmax of G with temperature - Centralized verion (normalization across all)
     /// 6 - adaptive learning using softmax of D with temperature
+    /// 7 - fixed probability learning
 
-    std::vector<int> adaptiveLearningSchemes = {0,3,4,5};
+    // std::vector<int> adaptiveLearningSchemes = {0,3,4,5};
+    std::vector<int> adaptiveLearningSchemes = {7};
 
     // Get timestamp
     time_t rawtime;
@@ -230,7 +234,7 @@ int main(){
                     double temp = temps[t];
                     for (size_t j = 0; j < numTrials; ++j){
                         // runMultiTrials(timeStr, numAgents, 0, j, barPadding, adaptiveLearning, maxEpoch, temp);
-                        runMultiTrials((char *)"final_discount0", numAgents, 0, j, barPadding, adaptiveLearning, maxEpoch, temp);
+                        runMultiTrials((char *)"fixed_probability", numAgents, 0, j, barPadding, adaptiveLearning, maxEpoch, temp);
                     }
                 }
             }
