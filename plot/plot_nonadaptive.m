@@ -48,7 +48,7 @@ dataDict = containers.Map();
 for i = 1:size(paths,2)
     nDisabled = numDisabled{i};
 
-    path = paths(i)
+    path = paths(i);
     
     csvFname = '/results.csv';
     

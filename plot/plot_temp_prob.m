@@ -1,4 +1,4 @@
-function plot_temp(varargin)
+function plot_temp_prob(varargin)
 varargin
 numAgents = 150;
 legendLoc = 'SouthEast';
@@ -16,7 +16,7 @@ capacity = 10;
 numTrials = 20;
 % numAgents = 150;
 
-temperatures = {'50'; '100'; '300'; '500'; '1000'};
+temperatures = {'50'};
 tempLegend = arrayfun(@(x) strcat('$\tau = ', x,'$'), temperatures);
 tempLegend = vertcat({'All Agents Learning'}, tempLegend);
 
@@ -68,7 +68,42 @@ for i = 1:size(paths)
 end
 
 
+probs = {'0.700000'};
+probLegend = {'0.7'};
+probLegend = arrayfun(@(x) strcat('$Prob = ', x,'$'), probLegend);
 
+% On Desktop
+pathsProb = arrayfun(@(x) strcat('../build/Results/fixed_probability/MultiNightBarQ/fixed_prob_learning/prob_', x, ...
+    "/", num2str(numAgents),"_agents/0_disabled"),probs);
+
+
+for i = 1:size(pathsProb)
+    prob = probs{i};
+
+    path = pathsProb(i);
+    
+    csvFname = '/results.csv';
+    
+    trialFolders = arrayfun(@(x) strcat('/trial_',num2str(x)), 0:numTrials-1, 'UniformOutput', false);
+    file = strcat(path, '/trial_0', csvFname);
+    trial0 = csvread(file);
+    data = zeros(size(trial0, 1), numTrials);
+    
+    for j = 1:numTrials
+       trialData =  csvread(strcat(path, trialFolders(j), csvFname));
+       data(:,j) = trialData(:,2);
+    end
+    
+    meanStd = zeros(size(trial0, 1), 3);
+    meanStd(:,1) = trial0(:,1);
+    meanStd(:,2) = mean(data, 2);
+    meanStd(:,3) = std(data,0, 2)./sqrt(numTrials);
+    
+    dataDict(prob) = meanStd;
+    
+end
+
+combLegend = vertcat(tempLegend, probLegend);
 
 markers = ['o'; 'v'; 's'; '^'; 'd'; 'p';'x'];
 linestyles = {'-.'; '-'; '--'};
@@ -83,7 +118,7 @@ fs = 14;
 increment = 20;
 increment1 = 200;
 maxEpoch = 3000;
-dict_keys = temperatures;
+dict_keys = vertcat(temperatures, probs);
 
 
 plotHandles = zeros(length(dict_keys),1);
@@ -108,7 +143,11 @@ for i = 1:length(dict_keys)
 
     % Plot line
     ls = linestyles{1 + mod(i, length(linestyles))};
-    c = colors(i,:);
+    if i>2
+        c = colors(i+1,:);
+    else
+        c = colors(i,:);
+    end
     mkr = markers(mod(i,length(markers)));
     plotHandles(i) = plot(epochs, means, 'LineStyle', ls, 'LineWidth', lw, 'Color', c);
     hold on
@@ -126,7 +165,7 @@ grid on
 
 xlabel('Epoch', 'FontSize', fs, 'Interpreter', 'latex');
 ylabel('Performance (max 100)', 'FontSize', fs, 'Interpreter', 'latex');
-legend(sampleHandles, tempLegend, 'Location', legendLoc, 'Interpreter', 'latex', 'FontSize', fs);
+legend(sampleHandles, combLegend, 'Location', legendLoc, 'Interpreter', 'latex', 'FontSize', fs);
 ylim([10,100]);
 
 if numAgents == 100

@@ -16,33 +16,21 @@ capacity = 10;
 numTrials = 20;
 % numAgents = 150;
 
-temperatures = {'50'; '100'; '300'; '500'; '1000'};
-tempLegend = arrayfun(@(x) strcat('$\tau = ', x,'$'), temperatures);
-tempLegend = vertcat({'All Agents Learning'}, tempLegend);
-
-
-% paths = arrayfun(@(x) strcat('../build/Results/adaptive_softmax/temp_', x, ...
-%     "/", num2str(numAgents),"_agents/0_disabled"),temperatures);
-% 
-% temperatures = vertcat(['All Agents Learning'], temperatures);
-% paths = vertcat('../build/Results/2017-11-03_10-02-19/MultiNightBarQ/non-adaptive/100_agents/0_disabled', paths);
-
-% paths = arrayfun(@(x) strcat('results_11-8/final/MultiNightBarQ/adaptive_softmax_G-distributed/temp_', x, ...
-%     "/", num2str(numAgents),"_agents/0_disabled"),temperatures);
-% 
-% temperatures = vertcat({'All Agents Learning'}, temperatures);
-% paths = vertcat(strcat('results_11-8/final/MultiNightBarQ/non-adaptive', '/', num2str(numAgents),'_agents/0_disabled'), paths);
+probs = {'0.100000'; '0.300000'; '0.500000'; '0.700000'; '1.000000'};
+probLegend = {'0.1'; '0.3'; '0.5'; '0.7'; '1.0'};
+probLegend = arrayfun(@(x) strcat('$Prob = ', x,'$'), probLegend);
+% probLegend = vertcat({'All Agents Learning'}, probLegend);
 
 % On Desktop
-paths = arrayfun(@(x) strcat('../build/Results/final_discount0/MultiNightBarQ/adaptive_softmax_G-distributed/temp_', x, ...
-    "/", num2str(numAgents),"_agents/0_disabled"),temperatures);
-temperatures = vertcat({'All Agents Learning'}, temperatures);
-paths = vertcat(strcat('../build/Results/final_discount0/MultiNightBarQ/non-adaptive', '/', num2str(numAgents),'_agents/0_disabled'), paths);
+paths = arrayfun(@(x) strcat('../build/Results/fixed_probability/MultiNightBarQ/fixed_prob_learning/prob_', x, ...
+    "/", num2str(numAgents),"_agents/0_disabled"),probs);
+% probs = vertcat({'All Agents Learning'}, probs);
+% paths = strcat('../build/Results/final_discount0/MultiNightBarQ/non-adaptive', '/', num2str(numAgents),'_agents/0_disabled');
 
 dataDict = containers.Map();
 
 for i = 1:size(paths)
-    temp = temperatures{i};
+    prob = probs{i};
 
     path = paths(i);
     
@@ -63,7 +51,7 @@ for i = 1:size(paths)
     meanStd(:,2) = mean(data, 2);
     meanStd(:,3) = std(data,0, 2)./sqrt(numTrials);
     
-    dataDict(temp) = meanStd;
+    dataDict(prob) = meanStd;
     
 end
 
@@ -83,7 +71,7 @@ fs = 14;
 increment = 20;
 increment1 = 200;
 maxEpoch = 3000;
-dict_keys = temperatures;
+dict_keys = probs;
 
 
 plotHandles = zeros(length(dict_keys),1);
@@ -126,23 +114,23 @@ grid on
 
 xlabel('Epoch', 'FontSize', fs, 'Interpreter', 'latex');
 ylabel('Performance (max 100)', 'FontSize', fs, 'Interpreter', 'latex');
-legend(sampleHandles, tempLegend, 'Location', legendLoc, 'Interpreter', 'latex', 'FontSize', fs);
+legend(sampleHandles, probLegend, 'Location', legendLoc, 'Interpreter', 'latex', 'FontSize', fs);
 ylim([10,100]);
 
 if numAgents == 100
     ylabel('Performance (max 100)', 'FontSize', fs, 'Interpreter', 'latex');
-    savefig('bar_temp_100agents.fig')
-    export_fig(gcf, 'bar_temp_100agents.pdf', '-trans');
+    savefig('bar_prob_100agents.fig')
+    export_fig(gcf, 'bar_prob_100agents.pdf', '-trans');
 
 elseif numAgents == 150
     ylabel('Performance (max 90)', 'FontSize', fs, 'Interpreter', 'latex');
-    savefig('bar_temp_150agents.fig')
-    export_fig(gcf, 'bar_temp_150agents.pdf', '-trans');
+    savefig('bar_prob_150agents.fig')
+    export_fig(gcf, 'bar_prob_150agents.pdf', '-trans');
 
 elseif numAgents == 200
     ylabel('Performance (max 90)', 'FontSize', fs, 'Interpreter', 'latex');
-    savefig('bar_temp_200agents.fig')
-    export_fig(gcf, 'bar_temp_200agents.pdf', '-trans');
+    savefig('bar_prob_200agents.fig')
+    export_fig(gcf, 'bar_prob_200agents.pdf', '-trans');
 
 else
 'invalid number of agents, cant export_fig'
