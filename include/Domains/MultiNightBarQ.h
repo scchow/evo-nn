@@ -127,9 +127,11 @@ class MultiNightBarQ{
     /// 1 - adaptive learning using fixed max
     /// 2 - adaptive learning using softmax of G only (no temperature) - Distributed verion (no normalization)
     /// 3 - adaptive learning using softmax of G with temperature - Distributed verion (no normalization)
-    /// 4 - adaptive learning using softmax of D with temperature
-    /// 5 - adaptive learning using softmax of G with temperature - Local communication verion (local normalization)
-    /// 6 - adaptive learning using softmax of G with temperature - Centralized verion (normalization across all)
+    /// 4 - adaptive learning using softmax of G with temperature - Local communication verion (normalization with same night)
+    /// 5 - adaptive learning using softmax of G with temperature - Centralized verion (normalization across all)
+    /// 6 - adaptive learning using softmax of D with temperature
+    /// 7 - fixed probability learning
+    /// 8 - adaptive learning using softmax of G with temperature - Distributed verion, learning with G and impact with G (onlyG)
 
     int adaptive;
 

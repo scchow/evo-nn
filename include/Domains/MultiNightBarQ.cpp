@@ -3,7 +3,7 @@
 MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::string evalFunc, 
                                double lr, double discount, double probRandom, double maxReward, 
                                size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch, double temperature): 
-                               numNights(nNights), capacity(cap), numAgents(nAgents), 
+                               numNights(nNights), capacity(cap),evaluationFunction(evalFunc), numAgents(nAgents),
                                numAgentsDisabled(nAgentsDisabled), adaptive(adaptiveLearning), 
                                discountFactor(discount), learningRate(lr), epsilon(probRandom),
                                temp(temperature), maxEpoch(mEpoch){
@@ -17,13 +17,17 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::
     for (size_t i = 0; i < numAgents; ++i){
         QLearner* newAgent = new QLearner(lr, discount, probRandom, maxReward, 
                                         numStates, numActions, initState);
-        if (i < nAgentsDisabled){
-            newAgent->setLearningFlag(false);
-        }
+        // if (i < nAgentsDisabled){
+        //     newAgent->setLearningFlag(false);
+        // }
+        // else{
+        //     newAgent->setLearningFlag(true);
+        // }
         agents.push_back(newAgent);
 
         //push a 0 to prevD
         prevD.push_back(0);
+        prevG = 0;
     }
 
     // Determine Evaluation Function to use
@@ -37,6 +41,10 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::
         std::cout << "ERROR: Unknown evaluation function type [" << evalFunc << "], setting to global evaluation!\n";
         
     }
+    // if adaptive learning marker is 8, use G for learning instead of D
+    if (adaptive == 8){
+        useD = false;
+    }
 
     for (size_t i = 0; i < nNights; ++i){
         barOccupancyPadding.push_back(0);
@@ -47,7 +55,7 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::
 MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barOccupancyPad, size_t nAgents, std::string evalFunc, 
                                double lr, double discount, double probRandom, double maxReward, size_t nAgentsDisabled, 
                                int adaptiveLearning, size_t mEpoch, double temperature): 
-                               numNights(nNights), capacity(cap), numAgents(nAgents), 
+                               numNights(nNights), capacity(cap), evaluationFunction(evalFunc), numAgents(nAgents),  
                                numAgentsDisabled(nAgentsDisabled), adaptive(adaptiveLearning),
                                discountFactor(discount), learningRate(lr), epsilon(probRandom),
                                temp(temperature), maxEpoch(mEpoch), barOccupancyPadding(barOccupancyPad){
@@ -63,10 +71,13 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barO
         if (i < nAgentsDisabled){
             newAgent->setLearningFlag(false);
         }
+        else{
+            newAgent->setLearningFlag(true);
+        }
         agents.push_back(newAgent);
 
         //push a 0 to prevD
-        prevD.push_back(0);
+        prevD.push_back(0.0);
     }
 
     // Determine Evaluation Function to use
@@ -78,6 +89,10 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barO
     }
     else{
         std::cout << "ERROR: Unknown evaluation function type [" << evalFunc << "], setting to global evaluation!\n";
+        useD = false;
+    }
+    // if adaptive learning marker is 8, use G for learning instead of D
+    if (adaptive == 8){
         useD = false;
     }
 }
@@ -139,28 +154,30 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
 
     // Compute G
     double G = MultiNightBarQ::computeG(barOccupancy);
+    std::cout << "G =" << G << std::endl;
 
-    //Compute D
     std::vector<double> D_vec;
+    //Compute D
+    if (useD){
+        for (size_t i = 0; i < numAgents; ++i){
+            int agentAction = agents[i]->getCurrentAction();
 
-    for (size_t i = 0; i < numAgents; ++i){
-        int agentAction = agents[i]->getCurrentAction();
+            // Remove agent from bar
+            barOccupancy[agentAction]--;
 
-        // Remove agent from bar
-        barOccupancy[agentAction]--;
+            double G_hat = MultiNightBarQ::computeG(barOccupancy);
 
-        double G_hat = MultiNightBarQ::computeG(barOccupancy);
+            D_vec.push_back(G-G_hat);
 
-        D_vec.push_back(G-G_hat);
-
-        // Add agent back into bar
-        barOccupancy[agentAction]++;
+            // Add agent back into bar
+            barOccupancy[agentAction]++;
+        }
     }
 
     // Choose agents to disable
     // Note, disable agents after updating so that they get updated first
     std::vector<bool> newLearningStates(numAgents, 0);
-    if (adaptive > 0 and adaptive < 6){
+    if ((adaptive > 0 and adaptive < 6) or adaptive == 8){
         double deltaG = G - prevG;
         std::vector<double> impacts;
         double totalImpact = 0;
@@ -186,24 +203,19 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
 
         //adaptive=2 normalized max of G (no temperature)
         else if (adaptive == 2){
-            numAgentsLearning = 0;
             double invMaxImpact = 1.0 / *std::max_element(impacts.begin(), impacts.end());
             for (size_t i = 0; i < numAgents; ++i){
                 double prob = impacts[i]/invMaxImpact;
                 double rand = distReal(generator);
                 if (rand < prob){
                     newLearningStates[i] = true;
-                    numAgentsLearning += 1;
                 }
             }
-            numAgentsDisabled = numAgents - numAgentsLearning;
-
-            std::cout << "Number Agents Learning" << numAgentsLearning << std::endl;
+            
         }
 
         // adaptive=3 impact = dG/dPi, softmax (no normalization) - distributed
-        else if (adaptive == 3){
-            numAgentsLearning = 0;
+        else if (adaptive == 3 or adaptive == 8){
             double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
             std::vector<double> softmax;
             for (size_t i = 0; i < numAgents; ++i){
@@ -212,12 +224,10 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
                 std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
                 if (rand < prob){
                     newLearningStates[i] = true;
-                    numAgentsLearning += 1;
                 }
                 softmax.push_back(prob);
 
             }
-            std::cout << "number agents learning = " << numAgentsLearning << std::endl;
             std::cout << "Probs of Learning Vector: ";
             for (size_t i = 0; i < impacts.size(); ++i){ 
                 std::cout << softmax[i] << "," ;
@@ -254,7 +264,6 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
                 invMaxImpacts.push_back(1/maxImpacts[i]);
             }
 
-            numAgentsLearning = 0;
             double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
             std::vector<double> softmax;
             for (size_t i = 0; i < numAgents; ++i){
@@ -265,12 +274,11 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
                 std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
                 if (rand < prob){
                     newLearningStates[i] = true;
-                    numAgentsLearning += 1;
                 }
                 softmax.push_back(prob);
 
             }
-            std::cout << "number agents learning = " << numAgentsLearning << std::endl;
+
             std::cout << "Probs of Learning Vector: ";
             for (size_t i = 0; i < impacts.size(); ++i){ 
                 std::cout << softmax[i] << "," ;
@@ -286,8 +294,6 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
 
         // adaptive=5 impact = dG/dPi, softmax (normalization with all agents) - centralizaed
         else if (adaptive == 5){
-        
-            numAgentsLearning = 0;
             double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
             double invMaxImpact = 1.0 / *std::max_element(impacts.begin(), impacts.end());
             std::vector<double> softmax;
@@ -297,12 +303,10 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
                 std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
                 if (rand < prob){
                     newLearningStates[i] = true;
-                    numAgentsLearning += 1;
                 }
                 softmax.push_back(prob);
 
             }
-            std::cout << "number agents learning = " << numAgentsLearning << std::endl;
             std::cout << "Probs of Learning Vector: ";
             for (size_t i = 0; i < impacts.size(); ++i){ 
                 std::cout << softmax[i] << "," ;
@@ -318,7 +322,6 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
 
     }
     else if (adaptive == 6){
-        numAgentsLearning = 0;
         double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
         std::vector<double> deltaDs;
         std::vector<double> softmax;
@@ -331,11 +334,9 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
             std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
             if (rand < prob){
                 newLearningStates[i] = true;
-                numAgentsLearning += 1;
             }
             softmax.push_back(prob);
         }
-        std::cout << "number agents learning = " << numAgentsLearning << std::endl;
         std::cout << "Probs of Learning Vector: ";
         for (size_t i = 0; i < softmax.size(); ++i){ 
             std::cout << softmax[i] << "," ;
@@ -358,15 +359,14 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
         std::cout << "\n";
     }
     else if (adaptive == 7){
-        numAgentsLearning = 0;
         for (size_t i = 0; i < numAgents; ++i){
             double rand = distReal(generator);
             if (rand < temp){
                 newLearningStates[i] = true;
-                numAgentsLearning += 1;
             }
         }
     }
+
 
     // Update Q values
     if (useD){
@@ -386,15 +386,21 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
     }
 
     // disable agents here
-    if (adaptive){
+    if (adaptive and epochNumber > 1){
+        numAgentsLearning = 0;
         for (size_t i = 0; i < numAgents; ++i){
             // Pass G as reward and remain at state 0
             agents[i]->setLearningFlag(newLearningStates[i]);
+            if (newLearningStates[i]==1){
+                numAgentsLearning += 1;
+            }
         }
+        numAgentsDisabled = numAgents - numAgentsLearning;
     }
-
+    std::cout << "number agents learning = " << numAgentsLearning << std::endl;
     // Update prevD
     prevD = D_vec;
+    prevG = G;
 
 
     return G;
