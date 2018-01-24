@@ -209,7 +209,7 @@ int main(){
     /// 8 - adaptive learning using softmax of G with temperature - Distributed verion, learning with G and impact with G (onlyG)
 
     // std::vector<int> adaptiveLearningSchemes = {0,3,4,5};
-    std::vector<int> adaptiveLearningSchemes = {8};
+    std::vector<int> adaptiveLearningSchemes = {0};
 
     // Get timestamp
     time_t rawtime;
@@ -221,7 +221,7 @@ int main(){
 
     strftime(timeStr,sizeof(timeStr),"%Y-%m-%d_%H-%M-%S", timeinfo);
 
-    char* folderName = (char *)"onlyG2";
+    char* folderName = (char *)"Test_Basic";
 
     for (size_t schemeInd = 0; schemeInd < adaptiveLearningSchemes.size(); ++schemeInd){
         adaptiveLearning = adaptiveLearningSchemes[schemeInd];
