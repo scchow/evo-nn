@@ -10,7 +10,7 @@ using std::vector;
 using std::string;
 using namespace Eigen;
 
-int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int trialNum, std::vector<int> barPadding, int adaptiveLearning, size_t maxEpoch, double temp){
+int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int trialNum, int adaptiveLearning, size_t maxEpoch, double temp){
     std::cout << "Testing MultiNightBarQ class in MultiNightBarQ.h\n";
     
     size_t capacity = 10;
@@ -18,7 +18,7 @@ int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int 
     string evalFunc = "D";
 
     double learningRate = 0.1;
-    double discount = 0.9;
+    double discount = 0.0;
     double epsilon = 0.01;
     double maxReward = 10; // set max reward to 10 since agents get D as reward
 
@@ -45,7 +45,7 @@ int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int 
     // std::cout << "Please enter trial number [NOTE: no checks enabled to prevent overwriting existing files, user must make sure trial number is unique]: ";
     // std::cin >> trialNum;
     
-    MultiNightBarQ trainDomain(numNights, capacity, barPadding, numAgents, evalFunc, 
+    MultiNightBarQ trainDomain(numNights, capacity, numAgents, evalFunc, 
                                  learningRate, discount, epsilon, maxReward, nAgentsDisabled, adaptiveLearning, maxEpoch, temp);
 
     int buffSize = 500;
@@ -168,55 +168,34 @@ int runMultiTrials(char* timeStr, size_t numAgents, size_t nAgentsDisabled, int 
 
 
 int main(){
-    size_t numTrials = 20;
-    size_t maxEpoch = 3000;
+    size_t numTrials = 1;
+    size_t maxEpoch = 2000;
     int adaptiveLearning;
     std::vector<size_t> numAgentVariations = {100};
 
-    std::vector<int> barPadding = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    std::vector<double> temps = {100,200,300,500,1000};
+    std::vector<double> temps = {300};
 
     // Adaptive Learning types
     // 0 - No Learning
     // 1 - Select Max n agents
     // 2 - Centralized Max - Probabality = Largest Normalize by largest Impact
-    // 3 - SoftMax with dG/dpi as impact
+    // 3 - SoftMax with dG/dpi as impact -> ONLY ONE THAT WORKS NOW
     // 4 - SoftMax with dD/dpi as impact
-    std::vector<int> adaptiveLearningSchemes = {4};
+    std::vector<int> adaptiveLearningSchemes = {3};
 
-    // Get timestamp
-    time_t rawtime;
-    struct tm * timeinfo;
-    char timeStr[80];
-
-    time (&rawtime);
-    timeinfo = localtime(&rawtime);
-
-    strftime(timeStr,sizeof(timeStr),"%Y-%m-%d_%H-%M-%S", timeinfo);
+    char timeStr[80] = "impact_modified";
 
     for (size_t schemeInd = 0; schemeInd < adaptiveLearningSchemes.size(); ++schemeInd){
         adaptiveLearning = adaptiveLearningSchemes[schemeInd];
         for (size_t k = 0; k < numAgentVariations.size(); ++k){
             size_t numAgents = numAgentVariations[k];
-            // If using softmax, specifying number of agents to not learn doesn't matter
-
-            if (adaptiveLearning == 0)
-                for (size_t i = 0; i < 20; ++i){
-                size_t numDisabled = i*10; 
+            for (size_t t = 0; t < temps.size(); ++t){
+                double temp = temps[t];
                 for (size_t j = 0; j < numTrials; ++j){
-                    if (numAgents > numDisabled){
-                        runMultiTrials(timeStr, numAgents, numDisabled, j, barPadding, adaptiveLearning, maxEpoch, 0);
-                    }
+                    runMultiTrials(timeStr, numAgents, 0, j, adaptiveLearning, maxEpoch, temp);
                 }
             }
-            else{
-                for (size_t t = 0; t < temps.size(); ++t){
-                    double temp = temps[t];
-                    for (size_t j = 0; j < numTrials; ++j){
-                        runMultiTrials(timeStr, numAgents, 0, j, barPadding, adaptiveLearning, maxEpoch, temp);
-                    }
-                }
-            }
+
         }
     }
     

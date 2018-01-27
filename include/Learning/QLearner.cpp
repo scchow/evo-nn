@@ -12,11 +12,11 @@ QLearner::QLearner(double lr, double discount, double probRandom, double maxRewa
     currState = initState;
     prevState = initState; // initialize prevState to current state to prevent errors
     deltaQ = 1; // let deltaQ be 1 in case computeImpact is called b
-    prevImpact = INFINITY;
+    prevImpact = 0;
 
     train = true;
 
-    distInt = std::uniform_int_distribution<>(0, nActions);
+    distInt = std::uniform_int_distribution<>(0, nActions-1);
 
 }
 

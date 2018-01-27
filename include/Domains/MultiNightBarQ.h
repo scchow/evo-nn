@@ -20,10 +20,6 @@ class MultiNightBarQ{
                    double lr, double discountFactor, double probRandom, double maxReward,
                    size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch, double temperature);
 
-    MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barOccupancyPad, size_t nAgents, std::string evalFunc, 
-                   double lr, double discountFactor, double probRandom, double maxReward,
-                   size_t nAgentsDisabled, int adaptiveLearning, size_t mEpoch, double temperature);
-
     ~MultiNightBarQ();
     
     /**
@@ -46,7 +42,7 @@ class MultiNightBarQ{
      * 
      * \brief Given a vector of occupants per bar, computes the G value
      */
-    double computeG(std::vector<size_t> occupancy);
+    double computeG(std::vector<size_t>& occupancy);
 
     /**
      * train()
@@ -77,7 +73,7 @@ class MultiNightBarQ{
      * \brief Outputs the agent's action in the following format 
      *        night number. number of agents attending that night, enjoyment 
      */   
-    void outputActions(char* B, std::vector<size_t> barOccupancy);
+    void outputActions(char* B, std::vector<size_t>& barOccupancy);
 
     void outputNumLearning(char* fname, size_t numEpochs);
 
@@ -145,8 +141,6 @@ class MultiNightBarQ{
     double temp;
     size_t maxEpoch; /// the final epoch number simulated (used for temperature calculations)
     
-    std::vector<int> barOccupancyPadding; // for each bar, how much should the occupancy be padded
-
     std::random_device rd; /// Seed Generator
     std::mt19937_64 generator{rd()}; /// generator initialized with seed from rd
     std::uniform_real_distribution<> distReal{0.0, 1.0}; /// Random number distribution from 0 to 1

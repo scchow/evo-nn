@@ -8,7 +8,7 @@ std::vector<T> getMaxIndices ( std::vector<T> v) {
   		maxValue = v[i];
   		maxIndices.push_back(i);
   	}
-  	else if (v[i] == maxValue){
+  	else if (std::abs(v[i] - maxValue) < 1e-99){
   		maxIndices.push_back(i);
   	}
   }

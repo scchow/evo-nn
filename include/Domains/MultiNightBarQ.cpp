@@ -38,48 +38,6 @@ MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, size_t nAgents, std::
         
     }
 
-    for (size_t i = 0; i < nNights; ++i){
-        barOccupancyPadding.push_back(0);
-    }
-
-}
-
-MultiNightBarQ::MultiNightBarQ(size_t nNights, size_t cap, std::vector<int> barOccupancyPad, size_t nAgents, std::string evalFunc, 
-                               double lr, double discount, double probRandom, double maxReward, size_t nAgentsDisabled, 
-                               int adaptiveLearning, size_t mEpoch, double temperature): 
-                               numNights(nNights), capacity(cap), numAgents(nAgents), 
-                               numAgentsDisabled(nAgentsDisabled), adaptive(adaptiveLearning),
-                               discountFactor(discount), learningRate(lr), epsilon(probRandom),
-                               temp(temperature), maxEpoch(mEpoch), barOccupancyPadding(barOccupancyPad){
-
-    size_t numStates = 1; // single state problem
-    size_t numActions = nNights; // each agent can choose which night to go on
-    size_t initState = 0; // all agents start with the only state they can be on
-
-    // Create QLearning Agents for each of the agents
-    for (size_t i = 0; i < numAgents; ++i){
-        QLearner* newAgent = new QLearner(lr, discount, probRandom, maxReward, 
-                                        numStates, numActions, initState);
-        if (i < nAgentsDisabled){
-            newAgent->setLearningFlag(false);
-        }
-        agents.push_back(newAgent);
-
-        //push a 0 to prevD
-        prevD.push_back(0);
-    }
-
-    // Determine Evaluation Function to use
-    if (evalFunc.compare("D") == 0){
-        useD = true;
-    }
-    else if (evalFunc.compare("G") == 0){
-        useD = false;
-    }
-    else{
-        std::cout << "ERROR: Unknown evaluation function type [" << evalFunc << "], setting to global evaluation!\n";
-        useD = false;
-    }
 }
 
 
@@ -97,11 +55,11 @@ void MultiNightBarQ::initialiseEpoch(){
     // Initialise each night as a separate Bar object
     barNights.clear();
     for (size_t i = 0; i < numNights; ++i){
-        barNights.push_back(Bar(capacity, barOccupancyPadding[i]));
+        barNights.push_back(Bar(capacity));
     }
 }
 
-double MultiNightBarQ::computeG(std::vector<size_t> occupancy){
+double MultiNightBarQ::computeG(std::vector<size_t>& occupancy){
     double G = 0.0;
     for (size_t i = 0; i < barNights.size(); ++i){ // compute reward for each night and sum
       G += barNights[i].GetReward(occupancy[i]);
@@ -123,10 +81,10 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
         barOccupancy[action]++;
     }
 
-    std::cout << "\nSimulating Epoch Results:" << std::endl;
-    for (size_t i = 0; i < barNights.size(); ++i){ // compute reward for each night and sum
-        std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n" ;
-    }
+    // std::cout << "\nSimulating Epoch Results:" << std::endl;
+    // for (size_t i = 0; i < barNights.size(); ++i){ // compute reward for each night and sum
+    //     std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n" ;
+    // }
 
     // Compute G
     double G = MultiNightBarQ::computeG(barOccupancy);
@@ -137,127 +95,62 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
     for (size_t i = 0; i < numAgents; ++i){
         int agentAction = agents[i]->getCurrentAction();
 
-        // Remove agent from bar
-        barOccupancy[agentAction]--;
+        // reward for night with agent there
+        double originalReward = barNights[agentAction].GetReward(barOccupancy[agentAction]);
+        // reward for night without agent there
+        double newReward = barNights[agentAction].GetReward(barOccupancy[agentAction]-1);
+        // compute difference and push
+        D_vec.push_back(originalReward - newReward);
 
-        double G_hat = MultiNightBarQ::computeG(barOccupancy);
+        // // Remove agent from bar
+        // barOccupancy[agentAction]--;
 
-        D_vec.push_back(G-G_hat);
+        // double G_hat = MultiNightBarQ::computeG(barOccupancy);
 
-        // Add agent back into bar
-        barOccupancy[agentAction]++;
+        // D_vec.push_back(G-G_hat);
+
+        // // Add agent back into bar
+        // barOccupancy[agentAction]++;
     }
 
     // Choose agents to disable
     // Note, disable agents after updating so that they get updated first
     std::vector<bool> newLearningStates(numAgents, 0);
-    if (adaptive > 0 and adaptive < 4){
-        double deltaG = G - prevG;
-        std::vector<double> impacts;
-        double totalImpact = 0;
+    double deltaG = G - prevG;
+    std::vector<double> impacts;
 
-        // get impact of each agent
-        for (size_t i = 0; i < numAgents; ++i){
-            impacts.push_back(agents[i]->computeImpact(std::abs(deltaG)));
-            totalImpact += impacts[i];
-        }
-
-        // list of agents from least to most impactful
-        std::vector<size_t> sortedIndices = sortIndices(impacts);
-        // size_t numLearningAgents = numAgents - numAgentsDisabled;
-
-        if (adaptive == 1){
-            // select the most impactful quarter of agents to continue training
-            for (size_t i = numAgentsDisabled; i < numAgents; ++i){
-                newLearningStates[sortedIndices[i]] = true;
-            }
-        }
-
-        else if (adaptive == 2){
-            numAgentsLearning = 0;
-            for (size_t i = 0; i < numAgents; ++i){
-                double prob = impacts[i]/totalImpact;
-                double rand = distReal(generator);
-                if (rand < prob){
-                    newLearningStates[i] = true;
-                    numAgentsLearning += 1;
-                }
-            }
-            numAgentsDisabled = numAgents - numAgentsLearning;
-
-            std::cout << "Number Agents Learning" << numAgentsLearning << std::endl;
-        }
-
-        else if (adaptive == 3){
-        
-            numAgentsLearning = 0;
-            double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
-            std::vector<double> softmax;
-            for (size_t i = 0; i < numAgents; ++i){
-                double prob = 1 - std::exp(impacts[i] * negInvTemp);
-                double rand = distReal(generator);
-                std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
-                if (rand < prob){
-                    newLearningStates[i] = true;
-                    numAgentsLearning += 1;
-                }
-                softmax.push_back(prob);
-
-            }
-            std::cout << "number agents learning = " << numAgentsLearning << std::endl;
-            std::cout << "Probs of Learning Vector: ";
-            for (size_t i = 0; i < impacts.size(); ++i){ 
-                std::cout << softmax[i] << "," ;
-            }
-            std::cout << "\n";
-
-            std::cout << "Impact Vector: ";
-            for (size_t i = 0; i < impacts.size(); ++i){ 
-                std::cout << impacts[i] << "," ;
-            }
-            std::cout << "\n";
-        }
+    // get impact of each agent
+    for (size_t i = 0; i < numAgents; ++i){
+        impacts.push_back(agents[i]->computeImpact(std::abs(deltaG)));
     }
-    else if (adaptive == 4){
-        numAgentsLearning = 0;
-        double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
-        std::vector<double> deltaDs;
-        std::vector<double> softmax;
-        for (size_t i = 0; i < numAgents; ++i){
-            double deltaD = std::abs(std::abs(D_vec[i]) - std::abs(prevD[i]));
-            deltaDs.push_back(deltaD);
-            double impact = agents[i]->computeImpact(std::abs(deltaD));
-            double prob = 1 - std::exp(impact * negInvTemp);
-            double rand = distReal(generator);
-            std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
-            if (rand < prob){
-                newLearningStates[i] = true;
-                numAgentsLearning += 1;
-            }
-            softmax.push_back(prob);
+    
+    numAgentsLearning = 0;
+    double negInvTemp = -1.0 / MultiNightBarQ::temperature(epochNumber);
+    std::vector<double> softmax;
+    for (size_t i = 0; i < numAgents; ++i){
+        double prob = 1 - std::exp(impacts[i] * negInvTemp);
+        double rand = distReal(generator);
+        // std::cout << "Prob = " << prob << " Rand = " << rand <<std::endl;
+        if (rand < prob){
+            newLearningStates[i] = true;
+            numAgentsLearning += 1;
         }
-        std::cout << "number agents learning = " << numAgentsLearning << std::endl;
-        std::cout << "Probs of Learning Vector: ";
-        for (size_t i = 0; i < softmax.size(); ++i){ 
-            std::cout << softmax[i] << "," ;
-        }
-        std::cout << "\n";
-        std::cout << "D:\n ";
-        for (size_t i = 0; i < softmax.size(); ++i){ 
-            std::cout << D_vec[i] << "," ;
-        }
-        std::cout << "\n";
-        std::cout << "prevD: \n";
-        for (size_t i = 0; i < softmax.size(); ++i){ 
-            std::cout << prevD[i] << "," ;
-        }
-        std::cout << "\n";
-        std::cout << "D: \n";
-        for (size_t i = 0; i < softmax.size(); ++i){ 
-            std::cout << deltaDs[i] << "," ;
-        }
-        std::cout << "\n";
+        softmax.push_back(prob);
+
     }
+        // std::cout << "number agents learning = " << numAgentsLearning << std::endl;
+        // std::cout << "Probs of Learning Vector: ";
+        // for (size_t i = 0; i < impacts.size(); ++i){ 
+        //     std::cout << softmax[i] << "," ;
+        // }
+        // std::cout << "\n";
+
+        // std::cout << "Impact Vector: ";
+        // for (size_t i = 0; i < impacts.size(); ++i){ 
+        //     std::cout << impacts[i] << "," ;
+        // }
+        // std::cout << "\n";
+
 
     // Update Q values
     if (useD){
@@ -276,8 +169,8 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
 
     }
 
-    // disable agents here
-    if (adaptive){
+    // disable agents starting after the 10th epoch
+    if (adaptive and epochNumber > 10){
         for (size_t i = 0; i < numAgents; ++i){
             // Pass G as reward and remain at state 0
             agents[i]->setLearningFlag(newLearningStates[i]);
@@ -300,10 +193,10 @@ double MultiNightBarQ::computeFinalScore(){
         size_t action = agents[i]->getBestAction();
         barOccupancy[action]++;
     }
-    std::cout << "\nTesting Best Action Results:" << std::endl;
-    for (size_t i = 0; i < barNights.size(); ++i){ // compute reward for each night and sum
-        std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n";
-    }
+    // std::cout << "\nTesting Best Action Results:" << std::endl;
+    // for (size_t i = 0; i < barNights.size(); ++i){ // compute reward for each night and sum
+    //     std::cout << "Night number: " << i << ", attendance: " << barOccupancy[i] << ", enjoyment: " << barNights[i].GetReward(barOccupancy[i]) << "\n";
+    // }
 
     // Compute G
     double G = MultiNightBarQ::computeG(barOccupancy);
@@ -336,7 +229,7 @@ double MultiNightBarQ::computeFinalScoreOutput(char* qTablePath, char* actionPat
 }
 
 // Wrapper for writing agent actions to specified files
-void MultiNightBarQ::outputActions(char* B, std::vector<size_t> barOccupancy){
+void MultiNightBarQ::outputActions(char* B, std::vector<size_t>& barOccupancy){
     // Filename to write bar configurations to stored in B
     std::stringstream barStream;
     barStream << B;
@@ -346,7 +239,6 @@ void MultiNightBarQ::outputActions(char* B, std::vector<size_t> barOccupancy){
     barFile.open(barStream.str().c_str(),std::ios::app);
     for (size_t i = 0; i < barOccupancy.size(); ++i){ // compute reward for each night and sum
         barFile << i << ", "; // Night Number
-        barFile << barNights[i].GetPadding() << ", "; // Padding
         barFile << barOccupancy[i] << ", " ; // Occupancy
         barFile << barNights[i].GetReward(barOccupancy[i]) << "\n"; //Enjoyment
     }
