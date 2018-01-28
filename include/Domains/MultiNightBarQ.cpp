@@ -180,6 +180,7 @@ double MultiNightBarQ::simulateEpoch(size_t epochNumber){
     // Update prevD
     prevD = D_vec;
 
+    prevG = G;
 
     return G;
 }
